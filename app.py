@@ -178,7 +178,7 @@ def is_demo_user() -> bool:
     return get_current_user_id() == "guest"
 
 def demo_notice():
-    st.info("Demo mode: browsing is enabled, but saving, editing, and AI actions require login.", icon=":material/lock:")
+    st.info("Demo mode: browsing is enabled, but saving, editing, and AI actions require login.", icon="🔒")
 
 def login_as(user_id: str):
     """Set session state and issue a persistent URL token."""
@@ -1421,10 +1421,27 @@ st.markdown("""
 header[data-testid="stHeader"] { display: none !important; }
 
 /* ── Base font ── */
-html, body, [class*="css"] {
+html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
     font-size: 15px !important;
     color: #1a1a1a !important;
+    -webkit-font-smoothing: antialiased !important;
+}
+
+/* Keep Streamlit/Material icon fonts intact */
+.material-symbols-rounded,
+.material-symbols-outlined,
+.material-icons {
+    font-family: "Material Symbols Rounded", "Material Symbols Outlined", "Material Icons" !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    line-height: 1 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    word-wrap: normal !important;
+    direction: ltr !important;
     -webkit-font-smoothing: antialiased !important;
 }
 
@@ -1503,16 +1520,16 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
 /* ── Info / warning / success boxes ── */
 [data-testid="stAlert"] p { font-size: 14px !important; line-height: 1.55 !important; }
 
-/* ── Action row: force single horizontal line ── */
-[data-testid="stColumns"] {
+/* ── Action row: only inside detail panel header ── */
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stColumns"] {
     flex-wrap: nowrap !important;
     gap: 4px !important;
 }
-[data-testid="stColumns"] > [data-testid="stColumn"] {
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stColumns"] > [data-testid="stColumn"] {
     min-width: 0 !important;
     flex-shrink: 1 !important;
 }
-[data-testid="stColumns"] > [data-testid="stColumn"] > div > div > div > button {
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stColumns"] > [data-testid="stColumn"] > div > div > div > button {
     padding: 0.3rem 0.2rem !important;
     min-width: 0 !important;
     width: 100% !important;
@@ -1686,40 +1703,53 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
         flex-direction: column !important;
         align-items: stretch !important;
     }
-    /* Detail column: show first, full width, normal scroll (no fixed) */
+    /* Detail column: full-screen mobile overlay */
     [data-testid="stColumn"]:has(.detail-panel-marker) {
         order: -1 !important;
-        position: relative !important;
-        top: auto !important;
-        height: auto !important;
-        overflow: visible !important;
-        width: 100% !important;
-        align-self: auto !important;
+        position: fixed !important;
+        inset: 0 !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        height: 100dvh !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        overflow: hidden !important;
+        align-self: stretch !important;
         background: white !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 12px !important;
+        border: none !important;
+        border-radius: 0 !important;
         padding: 0 !important;
-        margin-bottom: 12px !important;
+        margin: 0 !important;
         display: flex !important;
         flex-direction: column !important;
+        z-index: 999 !important;
+        box-shadow: none !important;
     }
-    /* On mobile: inner vertical block is normal flow */
+    /* On mobile: inner vertical block fills overlay */
     [data-testid="stColumn"]:has(.detail-panel-marker) > div > [data-testid="stVerticalBlock"] {
-        display: block !important;
-        height: auto !important;
-        overflow: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100dvh !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
     }
     [data-testid="stVerticalBlock"]:has(.dp-header-marker) {
         padding: 14px 16px 10px !important;
         border-bottom: 1px solid #e2e8f0 !important;
-        flex-shrink: unset !important;
+        flex-shrink: 0 !important;
+        background: white !important;
     }
     [data-testid="stVerticalBlock"]:has(.dp-body-marker) {
-        flex: unset !important;
-        overflow-y: visible !important;
-        padding: 14px 16px 16px !important;
+        flex: 1 !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 14px 16px 24px !important;
+        background: white !important;
     }
-    /* List column: show below detail */
+    /* List column remains underneath overlay */
     [data-testid="stHorizontalBlock"]:has(.detail-panel-marker) > [data-testid="stColumn"]:not(:has(.detail-panel-marker)) {
         order: 1 !important;
         width: 100% !important;
