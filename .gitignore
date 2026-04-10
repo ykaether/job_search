@@ -1,0 +1,17 @@
+# Data files (personal/user data — do not commit)
+data*.json
+sessions.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+
+# PDFs uploaded by users
+pdfs/
+
+# Letta
+.letta/

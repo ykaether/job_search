@@ -22,6 +22,7 @@ import qrcode
 import pdfplumber
 
 @st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, max_entries=1000)
 def translate_to_jp(text: str) -> str:
     if not text or not text.strip():
         return text
@@ -639,6 +640,42 @@ def render_dimensions(result):
             flags.append(f'<span style="font-size:11px;color:#f59e0b">⚑ {prac}</span>')
         if flags:
             st.markdown("<br>".join(flags), unsafe_allow_html=True)
+
+def get_score_theme(score):
+    if score is None or score < 0:
+        return {"fg": "#94a3b8", "bg": "#f8fafc", "border": "#cbd5e1"}
+    if score >= 75:
+        return {"fg": "#16a34a", "bg": "#dcfce7", "border": "#22c55e"}
+    if score >= 50:
+        return {"fg": "#d97706", "bg": "#fef3c7", "border": "#f59e0b"}
+    return {"fg": "#dc2626", "bg": "#fee2e2", "border": "#ef4444"}
+
+def score_pill_html(score, prominent=False):
+    theme = get_score_theme(score)
+    text = f"{score}pts" if score is not None and score >= 0 else "—"
+    font_size = "22px" if prominent else "16px"
+    padding = "8px 16px" if prominent else "6px 12px"
+    radius = "14px" if prominent else "12px"
+    border = "3px" if prominent else "2px"
+    shadow = "0 10px 24px rgba(15,23,42,0.10)" if prominent else "none"
+    min_width = "112px" if prominent else "88px"
+    return (
+        f'<div style="display:inline-flex;align-items:center;justify-content:center;'
+        f'min-width:{min_width};padding:{padding};border-radius:{radius};'
+        f'background:{theme["bg"]};color:{theme["fg"]};border:{border} solid {theme["border"]};'
+        f'font-size:{font_size};font-weight:800;letter-spacing:0.3px;box-shadow:{shadow}">'
+        f'{text}</div>'
+    )
+
+def score_square_html(score, size=48, font_size=18):
+    theme = get_score_theme(score)
+    text = str(score) if score is not None and score >= 0 else "—"
+    return (
+        f'<div style="background:{theme["bg"]};color:{theme["fg"]};'
+        f'font-size:{font_size}px;font-weight:800;width:{size}px;height:{size}px;'
+        f'border-radius:10px;display:flex;align-items:center;justify-content:center;'
+        f'flex-shrink:0;border:2px solid {theme["border"]}">{text}</div>'
+    )
 STATUS_BADGE = {
     "Not Applied": "⚪", "Applied": "🔵",
     "Interview": "🟡", "Offer": "🟢", "Rejected": "🔴", "Skip": "⛔"
@@ -646,8 +683,10 @@ STATUS_BADGE = {
 
 # ── Data ──────────────────────────────────────────────────────────
 
-def _load_data_from_disk():
-    f = user_data_file(get_current_user_id())
+@st.cache_data(show_spinner=False)
+def _load_data_from_disk(user_id: str, _cache_bust: int = 0):
+    """Disk read cached by user_id. Invalidated via _cache_bust counter in save_data."""
+    f = user_data_file(user_id)
     if os.path.exists(f):
         with open(f) as fp:
             d = json.load(fp)
@@ -663,11 +702,9 @@ def _load_data_from_disk():
     }
 
 def load_data():
-    """Cached per-rerun: reads from disk only once per script run."""
-    cache_key = f"_data_cache_{get_current_user_id()}"
-    if cache_key not in st.session_state:
-        st.session_state[cache_key] = _load_data_from_disk()
-    return st.session_state[cache_key]
+    uid = get_current_user_id()
+    bust = st.session_state.get(f"_data_bust_{uid}", 0)
+    return _load_data_from_disk(uid, bust)
 
 def backup_file(user_id):
     return os.path.join(BASE_DIR, f"data_{user_id}_undo.json")
@@ -682,8 +719,9 @@ def save_data(data):
         shutil.copy2(f, backup_file(uid))
     with open(f, "w") as fp:
         json.dump(data, fp, ensure_ascii=False, indent=2)
-    # Invalidate per-rerun cache so next load_data() reads fresh
-    st.session_state.pop(f"_data_cache_{uid}", None)
+    # Increment bust counter so _load_data_from_disk cache miss on next call
+    bust_key = f"_data_bust_{uid}"
+    st.session_state[bust_key] = st.session_state.get(bust_key, 0) + 1
 
 def undo_save():
     uid = get_current_user_id()
@@ -1608,7 +1646,26 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     overflow: hidden !important;
 }
 .dp-header-marker, .dp-body-marker, .close-btn-marker { display: none !important; }
-/* Close button: absolute top-right of the detail panel header */
+/* Header container: fixed, no scroll, with proper padding */
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) {
+    flex-shrink: 0 !important;
+    padding: 16px 20px 12px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+    position: relative !important;
+}
+/* Body container: scrollable with proper padding */
+[data-testid="stVerticalBlock"]:has(.dp-body-marker) {
+    flex: 1 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    padding: 16px 20px 20px !important;
+}
+/* Action buttons: compact with balanced spacing */
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stHorizontalBlock"] {
+    gap: 6px !important;
+    margin-top: 8px !important;
+}
 [data-testid="stMarkdownContainer"]:has(.close-btn-marker) + [data-testid="stButton"],
 [data-testid="stMarkdownContainer"]:has(.close-btn-marker) ~ [data-testid="stButton"]:first-of-type {
     position: absolute !important;
@@ -1631,26 +1688,6 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     background: #e5e7eb !important;
     border: none !important;
     color: #374151 !important;
-}
-/* Header container: fixed, no scroll, with proper padding */
-[data-testid="stVerticalBlock"]:has(.dp-header-marker) {
-    flex-shrink: 0 !important;
-    padding: 16px 20px 12px !important;
-    border-bottom: 1px solid #e2e8f0 !important;
-    background: #f8fafc !important;
-    position: relative !important;
-}
-/* Body container: scrollable with proper padding */
-[data-testid="stVerticalBlock"]:has(.dp-body-marker) {
-    flex: 1 !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-    padding: 16px 20px 20px !important;
-}
-/* Action buttons: compact with balanced spacing */
-[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stHorizontalBlock"] {
-    gap: 6px !important;
-    margin-top: 8px !important;
 }
 [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stButton"]:not(:last-of-type) button {
     font-size: 12px !important;
@@ -1727,6 +1764,11 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     }
     [data-testid="stMetricValue"] {
         font-size: 28px !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.pipeline-card-row-marker) {
+        gap: 8px !important;
+        padding: 10px 12px !important;
+        border-radius: 12px !important;
     }
     /* Stack columns vertically */
     [data-testid="stHorizontalBlock"]:has(.detail-panel-marker) {
@@ -1806,7 +1848,6 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
         min-width: 0 !important;
         width: 100% !important;
     }
-    /* Close button: force true top-right placement on mobile overlay */
     [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stMarkdownContainer"]:has(.close-btn-marker) + [data-testid="stButton"],
     [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stMarkdownContainer"]:has(.close-btn-marker) ~ [data-testid="stButton"]:first-of-type {
         position: absolute !important;
@@ -1831,7 +1872,6 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     }
 }
 .detail-panel-marker { display: none !important; }
-
 /* ── Pipeline card buttons ── */
 .pipeline-card-marker { display: none !important; }
 /* Scoped to stVerticalBlock that has card markers but NOT detail-panel-marker
@@ -1872,6 +1912,36 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     background: #eff6ff !important;
     border: 2px solid #2563eb !important;
     color: #1e3a8a !important;
+}
+.pipeline-card-row-marker { display: none !important; }
+[data-testid="stHorizontalBlock"]:has(.pipeline-card-row-marker) {
+    align-items: stretch !important;
+    gap: 10px !important;
+    border: 1.5px solid #dbe4f0 !important;
+    border-radius: 14px !important;
+    background: #fff !important;
+    padding: 12px 14px !important;
+    margin-bottom: 10px !important;
+}
+[data-testid="stHorizontalBlock"]:has(.pipeline-card-row-marker) > [data-testid="stColumn"] {
+    min-width: 0 !important;
+}
+[data-testid="stHorizontalBlock"]:has(.pipeline-card-row-marker) [data-testid="stButton"] button {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+}
+[data-testid="stHorizontalBlock"]:has(.pipeline-card-row-marker) [data-testid="stButton"] button[kind="secondary"],
+[data-testid="stHorizontalBlock"]:has(.pipeline-card-row-marker) [data-testid="stButton"] button[kind="primary"] {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    color: #111 !important;
+}
+[data-testid="stHorizontalBlock"]:has(.pipeline-card-row-marker) [data-testid="stButton"] button p {
+    line-height: 1.55 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -2518,28 +2588,42 @@ with tab_overview:
             _loc     = " / ".join(p for p in [entry.get("country",""), entry.get("city","")] if p)
             _salary  = entry.get("salary","")
 
+            _dec_text      = f"  [{dec_label}]" if dec_label and dec_label != "—" else ""
+            _meta_text     = "  ·  ".join(p for p in [_loc, _salary, entry.get("source","")] if p)
+            _preview_short = (_reason[:70] + "…" if len(_reason) > 70 else _reason) if _reason else ""
             if score_n >= 75:   _score_dot = "🟢"
             elif score_n >= 50: _score_dot = "🟡"
             elif score_n >= 0:  _score_dot = "🔴"
             else:               _score_dot = "⚪"
 
-            _dec_text      = f"  [{dec_label}]" if dec_label and dec_label != "—" else ""
-            _meta_text     = "  ·  ".join(p for p in [_loc, _salary, entry.get("source","")] if p)
-            _preview_short = (_reason[:70] + "…" if len(_reason) > 70 else _reason) if _reason else ""
-            # Title first (full wrap), then score/status/company on 2nd line
-            _card_lines    = [role or company]
-            _card_lines.append(f"{_score_dot} {score_str}  {status_icon}  {company}{_dec_text}")
-            if _meta_text:     _card_lines.append(_meta_text)
-            if _preview_short: _card_lines.append(_preview_short)
+            _card_top_meta = f'{status_icon} {status}{_dec_text}' if status or dec_label else ""
+            _card_lines = [role or company]
+            if _card_top_meta:
+                _card_lines.append(_card_top_meta)
+            if _meta_text:
+                _card_lines.append(_meta_text)
+            if _preview_short:
+                _card_lines.append(_preview_short)
 
-            st.markdown('<span class="pipeline-card-marker"></span>', unsafe_allow_html=True)
-            if st.button("\n".join(_card_lines), key=f"card_{i}", use_container_width=True,
-                         type="primary" if _is_sel else "secondary"):
-                if _is_sel:
-                    st.session_state.pop("pipeline_selected_idx", None)
-                else:
-                    st.session_state["pipeline_selected_idx"] = i
-                st.rerun()
+            st.markdown('<span class="pipeline-card-row-marker"></span>', unsafe_allow_html=True)
+            _ovc1, _ovc2 = st.columns([6, 1.5])
+            with _ovc1:
+                st.markdown('<span class="pipeline-card-marker"></span>', unsafe_allow_html=True)
+                if st.button("\n".join(_card_lines), key=f"card_{i}", use_container_width=True,
+                             type="primary" if _is_sel else "secondary"):
+                    if _is_sel:
+                        st.session_state.pop("pipeline_selected_idx", None)
+                    else:
+                        st.session_state["pipeline_selected_idx"] = i
+                    st.rerun()
+            with _ovc2:
+                st.markdown(
+                    f'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-top:2px">'
+                    f'{score_pill_html(score_n)}'
+                    f'<div style="font-size:12px;color:#94a3b8;font-weight:600">{dec_label}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
 
         # ── Detail panel (PC split view) ─────────────────────────
         if _detail_col is not None:
@@ -2564,7 +2648,6 @@ with tab_overview:
                 with _dp_hdr:
                     st.markdown('<span class="dp-header-marker"></span>', unsafe_allow_html=True)
 
-                    # Title
                     _total_dp    = get_total(_sel_e)
                     _score100_dp = round(_total_dp / 8 * 100) if _total_dp is not None else None
                     st.markdown(
@@ -2573,11 +2656,13 @@ with tab_overview:
                         f'{_sel_e.get("role","") or _sel_e.get("company","")}</div>',
                         unsafe_allow_html=True
                     )
-                    # Score badge: absolute top-right (CSS anchored to dp-header-marker block)
                     if _score100_dp is not None:
-                        if _score100_dp >= 75:   _sbg, _sfg = "#16a34a", "#dcfce7"
-                        elif _score100_dp >= 50: _sbg, _sfg = "#d97706", "#fef3c7"
-                        else:                    _sbg, _sfg = "#dc2626", "#fee2e2"
+                        if _score100_dp >= 75:
+                            _sbg, _sfg = "#16a34a", "#dcfce7"
+                        elif _score100_dp >= 50:
+                            _sbg, _sfg = "#d97706", "#fef3c7"
+                        else:
+                            _sbg, _sfg = "#dc2626", "#fee2e2"
                         st.markdown(
                             f'<span class="score-badge-abs" style="position:absolute;top:12px;right:48px;'
                             f'font-size:15px;font-weight:800;color:{_sbg};background:{_sfg};'
@@ -2585,23 +2670,20 @@ with tab_overview:
                             f'letter-spacing:0.5px;z-index:5">{_score100_dp}pts</span>',
                             unsafe_allow_html=True
                         )
-                    # Company (bold)
+
                     st.markdown(
                         f'<div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:3px">'
                         f'{_sel_e.get("company","")}</div>',
                         unsafe_allow_html=True
                     )
-                    # Apply link
                     if _sel_url:
                         st.markdown(f"[→ Apply on Company / Job Site]({_sel_url})")
 
-                    # ── Close button (absolute top-right of detail panel) ──
                     st.markdown('<span class="close-btn-marker"></span>', unsafe_allow_html=True)
                     if st.button("✕", key="close_detail", type="secondary"):
                         st.session_state.pop("pipeline_selected_idx", None)
                         st.rerun()
 
-                    # ── Action buttons row (5 icons + label on PC) ──
                     _ca1, _ca2, _ca3, _ca4, _ca5 = st.columns(5)
                     if _ca1.button("💾 Save", key=f"dp_upd_h_{_sel_idx}", help=L["save_status_help"],
                                    use_container_width=True, disabled=True):
@@ -2843,7 +2925,7 @@ with tab_saved:
                 unsafe_allow_html=True
             )
             _sc1, _sc2 = st.columns([5, 1])
-            if _s_url: _sc1.markdown(f"[🔗 Link]({_s_url})")
+            if _s_url: _sc1.markdown(f"[→ Apply on Company / Job Site]({_s_url})")
             if _sc2.button("⭐", key=f"unsave_{_si}", help=L["unbookmark"],
                            use_container_width=True, type="primary"):
                 d = load_data()
