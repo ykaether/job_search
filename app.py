@@ -133,6 +133,13 @@ def delete_session(token: str):
 def get_current_user_id():
     return st.session_state.get("user_id", None)
 
+def is_demo_user() -> bool:
+    """Guest user is treated as a read-only public demo."""
+    return get_current_user_id() == "guest"
+
+def demo_notice():
+    st.info("Demo mode: browsing is enabled, but saving, editing, and AI actions require login.", icon=":material/lock:")
+
 def login_as(user_id: str):
     """Set session state and issue a persistent URL token."""
     for _k in ["active_profile_id", "sidebar_profile_sel"]:
@@ -623,6 +630,8 @@ def backup_file(user_id):
     return os.path.join(BASE_DIR, f"data_{user_id}_undo.json")
 
 def save_data(data):
+    if is_demo_user():
+        return
     uid = get_current_user_id()
     f = user_data_file(uid)
     if os.path.exists(f):
@@ -1764,6 +1773,7 @@ L = T[st.session_state["lang"]]
 
 uid = get_current_user_id()
 has_backup = os.path.exists(backup_file(uid))
+demo_mode = is_demo_user()
 
 with st.sidebar:
     # ── User info & logout ───────────────────────────────────────
@@ -1797,7 +1807,7 @@ with st.sidebar:
 
     with st.expander(L["sidebar_add_user"], expanded=False):
         new_user_name = st.text_input("Name", key="new_user_name")
-        if st.button(L["create_user_btn"]) and new_user_name.strip():
+        if st.button(L["create_user_btn"], disabled=demo_mode) and new_user_name.strip():
             new_id = new_user_name.strip().lower().replace(" ", "_")
             user_ids = [u["id"] for u in users]
             if new_id not in user_ids:
@@ -1813,6 +1823,8 @@ with st.sidebar:
 
     st.markdown("---")
     with st.expander(L["my_profile"], expanded=False):
+        if demo_mode:
+            demo_notice()
         d_prof = load_data()
         profiles = get_profiles(d_prof)
         if not profiles:
@@ -1836,7 +1848,7 @@ with st.sidebar:
                                     label_visibility="collapsed")
 
         save_col, del_col = st.columns([2, 1])
-        if save_col.button(L["save_profile"], key="save_prof_btn"):
+        if save_col.button(L["save_profile"], key="save_prof_btn", disabled=demo_mode):
             d = load_data()
             for p in d["profiles"]:
                 if p["id"] == sel_pid:
@@ -1847,7 +1859,7 @@ with st.sidebar:
             st.success(L["profile_saved"])
             st.rerun()
         if len(profiles) > 1:
-            if del_col.button(L["delete_profile_btn"], key="del_prof_btn"):
+            if del_col.button(L["delete_profile_btn"], key="del_prof_btn", disabled=demo_mode):
                 d = load_data()
                 d["profiles"] = [p for p in d["profiles"] if p["id"] != sel_pid]
                 d["active_profile_id"] = d["profiles"][0]["id"]
@@ -1870,7 +1882,7 @@ with st.sidebar:
                 ac1, ac2, ac3 = st.columns([3, 3, 1])
                 new_orig = ac1.text_input("元", value=orig, key=f"anon_orig_{idx}", label_visibility="collapsed")
                 new_rep  = ac2.text_input("置換後", value=rep, key=f"anon_rep_{idx}", label_visibility="collapsed")
-                if ac3.button("✕", key=f"anon_del_{idx}"):
+                if ac3.button("✕", key=f"anon_del_{idx}", disabled=demo_mode):
                     del anon_reps[orig]
                     d_anon["anon_replacements"] = anon_reps
                     save_data(d_anon)
@@ -1884,7 +1896,7 @@ with st.sidebar:
             new_anon_orig = an1.text_input("+ 追加", key="anon_new_orig", placeholder="例: 株式会社XX")
             new_anon_rep  = an2.text_input("→", key="anon_new_rep", placeholder="例: Japanese MNC",
                                             label_visibility="collapsed")
-            if st.button(L["anon_add_btn"], key="anon_add_btn"):
+            if st.button(L["anon_add_btn"], key="anon_add_btn", disabled=demo_mode):
                 if new_anon_orig.strip():
                     anon_reps[new_anon_orig.strip()] = new_anon_rep.strip()
                     d_anon["anon_replacements"] = anon_reps
@@ -1902,9 +1914,9 @@ with st.sidebar:
         # ── 新規プロフィール作成 ──────────────────────────────
         st.caption(L["new_profile"])
         nc1, nc2 = st.columns(2)
-        if nc1.button(L["new_blank_btn"], key="new_blank_btn"):
+        if nc1.button(L["new_blank_btn"], key="new_blank_btn", disabled=demo_mode):
             st.session_state["adding_profile"] = "blank"
-        if nc2.button(L["new_copy_btn"], key="new_copy_btn"):
+        if nc2.button(L["new_copy_btn"], key="new_copy_btn", disabled=demo_mode):
             st.session_state["adding_profile"] = "copy"
 
         adding = st.session_state.get("adding_profile")
@@ -1919,7 +1931,7 @@ with st.sidebar:
                                               label_visibility="collapsed",
                                               placeholder="Write your profile here...")
             cc1, cc2 = st.columns(2)
-            if cc1.button(L["create_btn"], key="create_prof_btn"):
+            if cc1.button(L["create_btn"], key="create_prof_btn", disabled=demo_mode):
                 if new_prof_name.strip():
                     d = load_data()
                     new_id = new_prof_name.strip().lower().replace(" ", "_") + f"_{len(d['profiles'])}"
@@ -1940,7 +1952,7 @@ with st.sidebar:
         n_jd = len(entries_with_jd)
         est_cost = round(n_jd * 0.07, 2)
 
-        if st.button(L["reeval_all_btn"], disabled=not (n_jd > 0 and api_key)):
+        if st.button(L["reeval_all_btn"], disabled=demo_mode or not (n_jd > 0 and api_key)):
             st.session_state["confirm_reeval"] = True
 
         if st.session_state.get("confirm_reeval"):
@@ -2009,6 +2021,9 @@ if os.path.exists(LOGO_PATH):
     _title_col.image(LOGO_PATH, width=120)
 else:
     _title_col.markdown('<p style="font-size:18px;font-weight:700;margin:0 0 4px 0;color:#1E293B">KoaFlux</p>', unsafe_allow_html=True)
+
+if demo_mode:
+    demo_notice()
 
 # ── Language toggle: compact selectbox ───────────────────────────
 _lang_val = st.session_state["lang"]
@@ -2478,7 +2493,7 @@ with tab_overview:
                                    use_container_width=True, disabled=True):
                         pass  # real save is below after selectbox
                     if _ca2.button("🔄 Re-eval", key=f"dp_reeval_h_{_sel_idx}",
-                                   disabled=not (_sel_has_jd and api_key),
+                                   disabled=demo_mode or not (_sel_has_jd and api_key),
                                    help=L["re_eval_help"] if _sel_has_jd else L["no_jd"],
                                    use_container_width=True):
                         with st.spinner(L["re_evaluating"]):
@@ -2507,6 +2522,7 @@ with tab_overview:
                             except Exception as e:
                                 st.error(f'{L["error_prefix"]}: {e}')
                     if _ca3.button("✏️ Edit", key=f"dp_edit_h_{_sel_idx}",
+                                   disabled=demo_mode,
                                    help=L["edit_help"], use_container_width=True):
                         _ekey = f"editing_{_sel_idx}"
                         st.session_state[_ekey] = not st.session_state.get(_ekey, False)
@@ -2521,6 +2537,7 @@ with tab_overview:
                             del st.session_state[f"confirm_del_{_sel_idx}"]
                             st.rerun()
                     elif _ca4.button("🗑 Delete", key=f"dp_del_h_{_sel_idx}",
+                                     disabled=demo_mode,
                                      help="Delete", use_container_width=True):
                         st.session_state[f"confirm_del_{_sel_idx}"] = True
                         st.rerun()
@@ -2528,6 +2545,7 @@ with tab_overview:
                     if _ca5.button(_bm_icon_dp, key=f"dp_bm_h_{_sel_idx}",
                                    help=L["unbookmark"] if _sel_is_bm else L["bookmark"],
                                    use_container_width=True,
+                                   disabled=demo_mode,
                                    type="primary" if _sel_is_bm else "secondary"):
                         d = load_data()
                         d["pipeline"][_sel_idx]["bookmarked"] = not _sel_is_bm
@@ -2553,7 +2571,7 @@ with tab_overview:
                         index=_dp_statuses.index(_sel_status) if _sel_status in _dp_statuses else 0,
                         key=f"dp_sel_{_sel_idx}", label_visibility="collapsed")
                     if _dp_new_status != _sel_status:
-                        if st.button("💾 " + L["save_status_help"], key=f"dp_upd_{_sel_idx}"):
+                        if st.button("💾 " + L["save_status_help"], key=f"dp_upd_{_sel_idx}", disabled=demo_mode):
                             update_status(_sel_idx, _dp_new_status)
                     _sel_meta = "  ·  ".join(p for p in [
                         f"📍 {' / '.join(p for p in _sel_loc_parts if p)}" if any(_sel_loc_parts) else "",
@@ -2610,7 +2628,7 @@ with tab_overview:
                                                 key=f"dp_note_{_sel_idx}", label_visibility="collapsed",
                                                 placeholder=L["notes_placeholder"])
                     if _dp_new_note != _dp_cur_note:
-                        if st.button(L["save_note"], key=f"dp_savenote_{_sel_idx}"):
+                        if st.button(L["save_note"], key=f"dp_savenote_{_sel_idx}", disabled=demo_mode):
                             save_note(_sel_idx, _dp_new_note)
 
         # ── CSV export (bottom) ───────────────────────────────────
@@ -2655,7 +2673,7 @@ with tab_overview:
         new_city    = al2.text_input("City", key="new_city", placeholder="e.g. CBD")
         new_salary  = al3.text_input("Salary", key="new_salary", placeholder="e.g. SGD 8,000–10,000")
         new_action  = al4.text_input("Next Action", key="new_action")
-        if st.button(L["add_to_pipeline"]):
+        if st.button(L["add_to_pipeline"], disabled=demo_mode):
             if new_company and new_role:
                 data["pipeline"].append({
                     "company": new_company, "role": new_role,
@@ -2990,11 +3008,11 @@ with tab_discover:
 
     # ── コントロール行 ────────────────────────────────────────
     hb1, hb2, hb3 = st.columns([3, 2, 1])
-    run_btn    = hb1.button("🔍 Run Discovery", type="primary", disabled=not api_key,
+    run_btn    = hb1.button("🔍 Run Discovery", type="primary", disabled=demo_mode or not api_key,
                              help=L["run_discovery_help"])
-    screen_btn = hb2.button(L["screen_unscreened_btn"], disabled=not api_key,
+    screen_btn = hb2.button(L["screen_unscreened_btn"], disabled=demo_mode or not api_key,
                              help=L["screen_unscreened_help"])
-    clear_btn  = hb3.button("🗑", help=L["clear_list_help"])
+    clear_btn  = hb3.button("🗑", help=L["clear_list_help"], disabled=demo_mode)
 
     n_unscreened = sum(1 for j in discovered if not j.get("screen_verdict") and j.get("status") not in ("pipeline", "dismissed"))
     if n_unscreened > 0:
@@ -3077,7 +3095,7 @@ with tab_discover:
                 unsafe_allow_html=True
             )
         with jc2:
-            if st.button(L["disc_eval_btn"], key=f"disc_eval_{idx_key}"):
+            if st.button(L["disc_eval_btn"], key=f"disc_eval_{idx_key}", disabled=demo_mode):
                 _fg = st.session_state.get("eval_form_gen", 0)
                 st.session_state[f"eval_company_{_fg}"] = j.get("company", "")
                 st.session_state[f"eval_role_{_fg}"]    = j.get("title", "")
@@ -3146,6 +3164,8 @@ with tab_discover:
 # ════════════════════════════════════════
 with tab_eval:
     st.subheader(L["eval_subheader"])
+    if demo_mode:
+        demo_notice()
 
     _eval_data = load_data()
     _active_pid = get_active_profile_id(_eval_data)
@@ -3169,7 +3189,7 @@ with tab_eval:
     fu1, fu2 = st.columns([5, 1])
     eval_url = fu1.text_input("🔗 LinkedIn URL (optional)", placeholder="https://www.linkedin.com/jobs/view/...",
                                key=f"eval_url_{_fgen}", label_visibility="visible")
-    _fetch_btn = fu2.button("Fetch", key=f"fetch_btn_{_fgen}", use_container_width=True)
+    _fetch_btn = fu2.button("Fetch", key=f"fetch_btn_{_fgen}", use_container_width=True, disabled=demo_mode)
     if _fetch_btn:
         _raw_url = eval_url.strip()
         if not _raw_url:
@@ -3239,7 +3259,7 @@ with tab_eval:
 
     eb1, eb2 = st.columns([3, 1])
     eval_btn = eb1.button(L["evaluate_btn"], type="primary",
-                          disabled=not (jd_text and api_key))
+                          disabled=demo_mode or not (jd_text and api_key))
     if eb2.button("🗑 Clear", key="eval_clear"):
         st.session_state["eval_form_gen"] = _fgen + 1
         st.rerun()
@@ -3318,4 +3338,3 @@ with tab_eval:
 
             except Exception as e:
                 st.error(f'{L["error_prefix"]}: {e}')
-
