@@ -1598,6 +1598,14 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     [data-testid="stRadio"] > div {
         justify-content: center !important;
     }
+    [data-testid="stColumn"]:has(.desktop-header-controls-marker) {
+        display: none !important;
+    }
+    [data-testid="stColumn"]:has(.mobile-header-menu-marker) {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: flex-start !important;
+    }
     /* Header columns: center each item on mobile */
     [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"] {
         display: flex !important;
@@ -1609,6 +1617,26 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     *:has(.pipeline-card-marker) + * button[kind="primary"] {
         font-weight: 600 !important;
     }
+}
+.desktop-header-controls-marker,
+.mobile-header-menu-marker { display: none !important; }
+[data-testid="stColumn"]:has(.mobile-header-menu-marker) {
+    display: none !important;
+}
+[data-testid="stHorizontalBlock"]:has(.overview-filter-marker) {
+    gap: 12px !important;
+    margin-bottom: 8px !important;
+}
+[data-testid="stHorizontalBlock"]:has(.overview-filter-marker) > [data-testid="stColumn"] {
+    min-width: 0 !important;
+}
+[data-testid="stHorizontalBlock"]:has(.overview-filter-marker) details {
+    border: 1px solid #dbe4f0 !important;
+    border-radius: 12px !important;
+    background: #f8fafc !important;
+}
+[data-testid="stHorizontalBlock"]:has(.overview-filter-marker) details summary {
+    font-weight: 700 !important;
 }
 
 /* ── Allow sticky: parent horizontal block must not clip ── */
@@ -1644,8 +1672,9 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     height: 100% !important;
     min-height: 0 !important;
     overflow: hidden !important;
+    position: relative !important;
 }
-.dp-header-marker, .dp-body-marker, .close-btn-marker { display: none !important; }
+.dp-header-marker, .dp-body-marker { display: none !important; }
 /* Header container: fixed, no scroll, with proper padding */
 [data-testid="stVerticalBlock"]:has(.dp-header-marker) {
     flex-shrink: 0 !important;
@@ -1666,23 +1695,15 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     gap: 6px !important;
     margin-top: 8px !important;
 }
-[data-testid="stMarkdownContainer"]:has(.close-btn-marker) + [data-testid="stButton"],
-[data-testid="stMarkdownContainer"]:has(.close-btn-marker) ~ [data-testid="stButton"]:first-of-type {
-    position: absolute !important;
-    top: 8px !important;
-    right: 10px !important;
-    z-index: 20 !important;
-    width: auto !important;
-}
-[data-testid="stMarkdownContainer"]:has(.close-btn-marker) + [data-testid="stButton"] button,
-[data-testid="stMarkdownContainer"]:has(.close-btn-marker) ~ [data-testid="stButton"]:first-of-type button {
-    padding: 0 !important;
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
+/* Close button: styled compact in its column */
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stButton"]:has(button[kind="secondary"]:not([data-testid])) button,
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) > div > [data-testid="stHorizontalBlock"] [data-testid="stColumn"]:last-child [data-testid="stButton"] button {
+    padding: 2px 6px !important;
     border-radius: 50% !important;
-    font-size: 14px !important;
+    font-size: 15px !important;
     line-height: 1 !important;
+    min-width: 30px !important;
+    width: 100% !important;
     justify-content: center !important;
     text-align: center !important;
     background: #e5e7eb !important;
@@ -1848,27 +1869,13 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
         min-width: 0 !important;
         width: 100% !important;
     }
-    [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stMarkdownContainer"]:has(.close-btn-marker) + [data-testid="stButton"],
-    [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stMarkdownContainer"]:has(.close-btn-marker) ~ [data-testid="stButton"]:first-of-type {
-        position: absolute !important;
-        top: 14px !important;
-        right: 14px !important;
-        left: auto !important;
-        z-index: 30 !important;
-        width: 44px !important;
-        height: 44px !important;
-        margin: 0 !important;
-    }
-    [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stMarkdownContainer"]:has(.close-btn-marker) + [data-testid="stButton"] button,
-    [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stMarkdownContainer"]:has(.close-btn-marker) ~ [data-testid="stButton"]:first-of-type button {
-        width: 44px !important;
-        height: 44px !important;
-        min-width: 44px !important;
+    /* Close button: larger on mobile */
+    [data-testid="stVerticalBlock"]:has(.dp-header-marker) > div > [data-testid="stHorizontalBlock"] [data-testid="stColumn"]:last-child [data-testid="stButton"] button {
         border-radius: 999px !important;
-        padding: 0 !important;
         font-size: 20px !important;
         line-height: 1 !important;
         justify-content: center !important;
+        min-height: 44px !important;
     }
 }
 .detail-panel-marker { display: none !important; }
@@ -2210,9 +2217,85 @@ with st.sidebar:
     if not api_key:
         st.warning(L["api_not_set"])
 
+def render_qr_panel(prefix: str):
+    _base_url = get_public_base_url()
+    _sess_tok = st.session_state.get("_session_token", "")
+    _qr_url = f"{_base_url}?t={_sess_tok}" if _sess_tok else _base_url
+    st.image(make_qr_image(_qr_url), width=180)
+    st.caption(_qr_url)
+    if not _sess_tok:
+        st.warning("ログイン後にQRを開くとセッション付きURLになります")
+
+def render_account_panel(prefix: str, label_map, has_backup_flag: bool):
+    _acct_uid = get_current_user_id()
+    _acct_users = load_users()
+    _is_guest = (_acct_uid == "guest")
+
+    if _is_guest:
+        st.caption(label_map["guest_label"])
+        st.markdown("---")
+        st.markdown(f"**{label_map['login_heading']}**")
+        with st.form(f"{prefix}_login_form"):
+            _pop_email = st.text_input("Email", placeholder="you@gmail.com", key=f"{prefix}_email").strip().lower()
+            _pop_pw = st.text_input("Password", type="password", key=f"{prefix}_pw")
+            _pop_login = st.form_submit_button(label_map["login_btn"], use_container_width=True, type="primary")
+        if _pop_login:
+            _pu = next((u for u in _acct_users if u.get("email", "").lower() == _pop_email), None)
+            if _pu and check_password(_pu, _pop_pw):
+                login_as(_pu["id"])
+                st.rerun()
+            else:
+                st.error(label_map["email_not_found"] if not _pu else label_map["wrong_password"])
+
+        st.markdown("---")
+        with st.expander("📝 " + label_map["pop_register_label"]):
+            _pr_email = st.text_input("Email", key=f"{prefix}_reg_email", placeholder="you@gmail.com").strip().lower()
+            _pr_name = st.text_input("Name", key=f"{prefix}_reg_name", placeholder="e.g. Taro")
+            _pr_pw1 = st.text_input("Password", type="password", key=f"{prefix}_reg_pw1")
+            _pr_pw2 = st.text_input(label_map["confirm_pw"], type="password", key=f"{prefix}_reg_pw2")
+            if st.button(label_map["register_btn"], key=f"{prefix}_reg_btn", type="primary"):
+                if not _pr_email:
+                    st.error(label_map["email_required"])
+                elif not _pr_name.strip():
+                    st.error(label_map["name_required"])
+                elif not _pr_pw1:
+                    st.error(label_map["pw_required"])
+                elif _pr_pw1 != _pr_pw2:
+                    st.error(label_map["pw_mismatch"])
+                elif any(u.get("email", "").lower() == _pr_email for u in _acct_users):
+                    st.error(label_map["email_taken"])
+                else:
+                    _pr_id = hashlib.md5(_pr_email.encode()).hexdigest()[:12]
+                    _acct_users.append({
+                        "id": _pr_id,
+                        "name": _pr_name.strip(),
+                        "email": _pr_email,
+                        "password_hash": hash_password(_pr_pw1),
+                        "lang": st.session_state.get("lang", "EN"),
+                    })
+                    save_users(_acct_users)
+                    login_as(_pr_id)
+                    st.rerun()
+    else:
+        _acct_uname = next((u["name"] for u in _acct_users if u["id"] == _acct_uid), _acct_uid)
+        _acct_email = next((u.get("email", "") for u in _acct_users if u["id"] == _acct_uid), "")
+        st.markdown(f"**{_acct_uname}**")
+        if _acct_email:
+            st.caption(_acct_email)
+        st.markdown("---")
+        if has_backup_flag and st.button(label_map["undo_btn"], key=f"{prefix}_undo_btn"):
+            if undo_save():
+                st.rerun()
+        if st.button(label_map["logout"], key=f"{prefix}_logout_btn", use_container_width=True):
+            delete_session(st.session_state.get("_session_token", ""))
+            st.query_params.pop("t", None)
+            for _k in ["user_id", "active_profile_id", "sidebar_profile_sel", "_session_token"]:
+                st.session_state.pop(_k, None)
+            st.rerun()
+
 data = load_data()
 
-_title_col, _lang_col, _qr_col, _acct_col = st.columns([4, 1, 1, 1])
+_title_col, _lang_col, _qr_col, _acct_col, _mobile_menu_col = st.columns([4.6, 1, 1, 1, 0.8])
 if os.path.exists(LOGO_PATH):
     _title_col.image(LOGO_PATH, width=120)
 else:
@@ -2223,6 +2306,7 @@ if demo_mode:
 
 # ── Language toggle: compact selectbox ───────────────────────────
 _lang_val = st.session_state["lang"]
+_lang_col.markdown('<span class="desktop-header-controls-marker"></span>', unsafe_allow_html=True)
 _lang_new = _lang_col.selectbox("", ["EN", "JP"],
                                  index=["EN","JP"].index(_lang_val),
                                  key="lang_select",
@@ -2234,15 +2318,9 @@ if _lang_new != _lang_val:
     st.rerun()
 
 # ── QR popover in header ──────────────────────────────────────────
+_qr_col.markdown('<span class="desktop-header-controls-marker"></span>', unsafe_allow_html=True)
 with _qr_col.popover("📱", use_container_width=True):
-    _base_url = get_public_base_url()
-    _sess_tok = st.session_state.get("_session_token", "")
-    _qr_url   = f"{_base_url}?t={_sess_tok}" if _sess_tok else _base_url
-
-    st.image(make_qr_image(_qr_url), width=180)
-    st.caption(_qr_url)
-    if not _sess_tok:
-        st.warning("ログイン後にQRを開くとセッション付きURLになります")
+    render_qr_panel("header_qr")
 
 # ── Account popover ───────────────────────────────────────────────
 _acct_uid    = get_current_user_id()
@@ -2251,60 +2329,26 @@ _acct_uname  = next((u["name"] for u in _acct_users if u["id"] == _acct_uid), _a
 _is_guest    = (_acct_uid == "guest")
 _acct_icon   = "👤"
 
+_acct_col.markdown('<span class="desktop-header-controls-marker"></span>', unsafe_allow_html=True)
 with _acct_col.popover(_acct_icon, use_container_width=True):
-    if _is_guest:
-        st.caption(L["guest_label"])
-        st.markdown("---")
-        # ── ログイン ──────────────────────────────────────────
-        st.markdown(f"**{L['login_heading']}**")
-        with st.form("pop_login_form"):
-            _pop_email = st.text_input("Email", placeholder="you@gmail.com", key="pop_email").strip().lower()
-            _pop_pw    = st.text_input("Password", type="password", key="pop_pw")
-            _pop_login = st.form_submit_button(L["login_btn"], use_container_width=True, type="primary")
-        if _pop_login:
-            _pu = next((u for u in _acct_users if u.get("email","").lower() == _pop_email), None)
-            if _pu and check_password(_pu, _pop_pw):
-                login_as(_pu["id"])
-                st.rerun()
-            else:
-                st.error(L["email_not_found"] if not _pu else L["wrong_password"])
-        st.markdown("---")
-        # ── 新規登録 ──────────────────────────────────────────
-        with st.expander("📝 " + L["pop_register_label"]):
-            _pr_email = st.text_input("Email", key="pop_reg_email", placeholder="you@gmail.com").strip().lower()
-            _pr_name  = st.text_input("Name", key="pop_reg_name", placeholder="e.g. Taro")
-            _pr_pw1   = st.text_input("Password", type="password", key="pop_reg_pw1")
-            _pr_pw2   = st.text_input(L["confirm_pw"], type="password", key="pop_reg_pw2")
-            if st.button(L["register_btn"], key="pop_reg_btn", type="primary"):
-                if not _pr_email: st.error(L["email_required"])
-                elif not _pr_name.strip(): st.error(L["name_required"])
-                elif not _pr_pw1: st.error(L["pw_required"])
-                elif _pr_pw1 != _pr_pw2: st.error(L["pw_mismatch"])
-                elif any(u.get("email","").lower() == _pr_email for u in _acct_users):
-                    st.error(L["email_taken"])
-                else:
-                    _pr_id = hashlib.md5(_pr_email.encode()).hexdigest()[:12]
-                    _acct_users.append({"id": _pr_id, "name": _pr_name.strip(),
-                                        "email": _pr_email, "password_hash": hash_password(_pr_pw1),
-                                        "lang": st.session_state.get("lang", "EN")})
-                    save_users(_acct_users)
-                    login_as(_pr_id)
-                    st.rerun()
-    else:
-        _acct_email = next((u.get("email","") for u in _acct_users if u["id"] == _acct_uid), "")
-        st.markdown(f"**{_acct_uname}**")
-        if _acct_email:
-            st.caption(_acct_email)
-        st.markdown("---")
-        if has_backup and st.button(L["undo_btn"], key="pop_undo_btn"):
-            if undo_save():
-                st.rerun()
-        if st.button(L["logout"], key="pop_logout_btn", use_container_width=True):
-            delete_session(st.session_state.get("_session_token", ""))
-            st.query_params.pop("t", None)
-            for _k in ["user_id", "active_profile_id", "sidebar_profile_sel", "_session_token"]:
-                st.session_state.pop(_k, None)
-            st.rerun()
+    render_account_panel("pop", L, has_backup)
+
+_mobile_menu_col.markdown('<span class="mobile-header-menu-marker"></span>', unsafe_allow_html=True)
+with _mobile_menu_col.popover("☰", use_container_width=True):
+    st.markdown("**Menu**")
+    _m_lang_val = st.session_state["lang"]
+    _m_lang_new = st.selectbox("Language", ["EN", "JP"],
+                               index=["EN", "JP"].index(_m_lang_val),
+                               key="mobile_lang_select")
+    if _m_lang_new != _m_lang_val:
+        st.session_state["lang"] = _m_lang_new
+        save_user_lang(get_current_user_id(), _m_lang_new)
+        st.rerun()
+    st.markdown("---")
+    with st.expander(L["smartphone_qr"], expanded=False):
+        render_qr_panel("mobile_qr")
+    st.markdown("---")
+    render_account_panel("mobile_menu", L, has_backup)
 
 # ── Profile toggle (main area, mobile-friendly) ───────────────────────────
 _mp_data = load_data()
@@ -2540,11 +2584,12 @@ with tab_overview:
         )
         st.markdown("")
 
-        # ── Filter ───────────────────────────────────────────────
-        ov_f1, ov_f2 = st.columns(2)
-        ov_status   = ov_f1.multiselect("Status", STATUS_OPTIONS, default=STATUS_OPTIONS, key="ov_status")
-        ov_decision = ov_f2.multiselect("Decision", ["Go","Stretch","Explore","Skip","—"],
-                                         default=["Go","Stretch","Explore","Skip","—"], key="ov_decision")
+        # ── Filters: collapse by default so mobile keeps room for the list ──
+        st.markdown('<span class="overview-filter-marker"></span>', unsafe_allow_html=True)
+        with st.expander("Filters", expanded=False):
+            ov_status = st.multiselect("Status", STATUS_OPTIONS, default=STATUS_OPTIONS, key="ov_status")
+            ov_decision = st.multiselect("Decision", ["Go", "Stretch", "Explore", "Skip", "—"],
+                                         default=["Go", "Stretch", "Explore", "Skip", "—"], key="ov_decision")
 
         def _entry_score(e):
             t = get_total(e)
@@ -2650,12 +2695,6 @@ with tab_overview:
 
                     _total_dp    = get_total(_sel_e)
                     _score100_dp = round(_total_dp / 8 * 100) if _total_dp is not None else None
-                    st.markdown(
-                        f'<div style="font-size:18px;font-weight:700;color:#111;line-height:1.4;'
-                        f'word-break:break-word;white-space:normal;margin-bottom:4px;padding-right:80px">'
-                        f'{_sel_e.get("role","") or _sel_e.get("company","")}</div>',
-                        unsafe_allow_html=True
-                    )
                     if _score100_dp is not None:
                         if _score100_dp >= 75:
                             _sbg, _sfg = "#16a34a", "#dcfce7"
@@ -2663,13 +2702,29 @@ with tab_overview:
                             _sbg, _sfg = "#d97706", "#fef3c7"
                         else:
                             _sbg, _sfg = "#dc2626", "#fee2e2"
+
+                    # ── Top row: title | score | ✕ ──
+                    _dph_t, _dph_s, _dph_x = st.columns([7, 2, 1])
+                    with _dph_t:
                         st.markdown(
-                            f'<span class="score-badge-abs" style="position:absolute;top:12px;right:48px;'
-                            f'font-size:15px;font-weight:800;color:{_sbg};background:{_sfg};'
-                            f'border:2px solid {_sbg};border-radius:8px;padding:3px 10px;'
-                            f'letter-spacing:0.5px;z-index:5">{_score100_dp}pts</span>',
+                            f'<div style="font-size:18px;font-weight:700;color:#111;line-height:1.3;'
+                            f'word-break:break-word;white-space:normal;margin-bottom:2px">'
+                            f'{_sel_e.get("role","") or _sel_e.get("company","")}</div>',
                             unsafe_allow_html=True
                         )
+                    if _score100_dp is not None:
+                        with _dph_s:
+                            st.markdown(
+                                f'<div style="font-size:14px;font-weight:800;color:{_sbg};'
+                                f'background:{_sfg};border:2px solid {_sbg};border-radius:8px;'
+                                f'padding:3px 8px;text-align:center;letter-spacing:0.5px;'
+                                f'margin-top:4px">{_score100_dp}pts</div>',
+                                unsafe_allow_html=True
+                            )
+                    with _dph_x:
+                        if st.button("✕", key="close_detail", type="secondary"):
+                            st.session_state.pop("pipeline_selected_idx", None)
+                            st.rerun()
 
                     st.markdown(
                         f'<div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:3px">'
@@ -2678,11 +2733,6 @@ with tab_overview:
                     )
                     if _sel_url:
                         st.markdown(f"[→ Apply on Company / Job Site]({_sel_url})")
-
-                    st.markdown('<span class="close-btn-marker"></span>', unsafe_allow_html=True)
-                    if st.button("✕", key="close_detail", type="secondary"):
-                        st.session_state.pop("pipeline_selected_idx", None)
-                        st.rerun()
 
                     _ca1, _ca2, _ca3, _ca4, _ca5 = st.columns(5)
                     if _ca1.button("💾 Save", key=f"dp_upd_h_{_sel_idx}", help=L["save_status_help"],
