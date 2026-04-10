@@ -1598,19 +1598,25 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     [data-testid="stRadio"] > div {
         justify-content: center !important;
     }
-    [data-testid="stColumn"]:has(.desktop-header-controls-marker) {
+    [data-testid="stHorizontalBlock"]:has(.desktop-header-row-marker) {
         display: none !important;
     }
-    [data-testid="stColumn"]:has(.mobile-header-menu-marker) {
+    [data-testid="stHorizontalBlock"]:has(.mobile-header-row-marker) {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-bottom: 4px !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.mobile-header-row-marker) > [data-testid="stColumn"]:first-child {
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.mobile-header-row-marker) > [data-testid="stColumn"]:last-child {
+        flex: 0 0 44px !important;
+        width: 44px !important;
+        min-width: 44px !important;
         display: flex !important;
         justify-content: flex-end !important;
-        align-items: flex-start !important;
-    }
-    /* Header columns: center each item on mobile */
-    [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"] {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
     }
     /* Card buttons: keep left-aligned, bold first line via strong title */
     *:has(.pipeline-card-marker) + * button[kind="secondary"],
@@ -1619,9 +1625,15 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     }
 }
 .desktop-header-controls-marker,
-.mobile-header-menu-marker { display: none !important; }
-[data-testid="stColumn"]:has(.mobile-header-menu-marker) {
+.mobile-header-menu-marker,
+.desktop-header-row-marker,
+.mobile-header-row-marker { display: none !important; }
+[data-testid="stHorizontalBlock"]:has(.mobile-header-row-marker) {
     display: none !important;
+}
+[data-testid="stHorizontalBlock"]:has(.desktop-header-row-marker) {
+    display: flex !important;
+    align-items: center !important;
 }
 [data-testid="stHorizontalBlock"]:has(.overview-filter-marker) {
     gap: 12px !important;
@@ -2295,11 +2307,15 @@ def render_account_panel(prefix: str, label_map, has_backup_flag: bool):
 
 data = load_data()
 
-_title_col, _lang_col, _qr_col, _acct_col, _mobile_menu_col = st.columns([4.6, 1, 1, 1, 0.8])
-if os.path.exists(LOGO_PATH):
-    _title_col.image(LOGO_PATH, width=120)
-else:
-    _title_col.markdown('<p style="font-size:18px;font-weight:700;margin:0 0 4px 0;color:#1E293B">KoaFlux</p>', unsafe_allow_html=True)
+def render_brand(_col):
+    if os.path.exists(LOGO_PATH):
+        _col.image(LOGO_PATH, width=120)
+    else:
+        _col.markdown('<p style="font-size:18px;font-weight:700;margin:0 0 4px 0;color:#1E293B">KoaFlux</p>', unsafe_allow_html=True)
+
+_title_col, _lang_col, _qr_col, _acct_col = st.columns([4.6, 1, 1, 1])
+_title_col.markdown('<span class="desktop-header-row-marker"></span>', unsafe_allow_html=True)
+render_brand(_title_col)
 
 if demo_mode:
     demo_notice()
@@ -2333,8 +2349,11 @@ _acct_col.markdown('<span class="desktop-header-controls-marker"></span>', unsaf
 with _acct_col.popover(_acct_icon, use_container_width=True):
     render_account_panel("pop", L, has_backup)
 
-_mobile_menu_col.markdown('<span class="mobile-header-menu-marker"></span>', unsafe_allow_html=True)
-with _mobile_menu_col.popover("☰", use_container_width=True):
+_mtitle_col, _mmenu_col = st.columns([1, 0.16])
+_mtitle_col.markdown('<span class="mobile-header-row-marker"></span>', unsafe_allow_html=True)
+render_brand(_mtitle_col)
+_mmenu_col.markdown('<span class="mobile-header-row-marker"></span><span class="mobile-header-menu-marker"></span>', unsafe_allow_html=True)
+with _mmenu_col.popover("☰", use_container_width=True):
     st.markdown("**Menu**")
     _m_lang_val = st.session_state["lang"]
     _m_lang_new = st.selectbox("Language", ["EN", "JP"],
