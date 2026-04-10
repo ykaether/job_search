@@ -1,0 +1,22 @@
+[
+  {
+    "id": "default",
+    "name": "Me",
+    "email": "huey.guam@gmail.com",
+    "password_hash": "$2b$12$b8hhoVUaMVZByC9ySBMKqexN.6Qx0E9N6tu7PvzMUhfg0nKDBRcua"
+  },
+  {
+    "id": "yusaku",
+    "name": "Yusaku"
+  },
+  {
+    "id": "azlan",
+    "name": "Azlan",
+    "password_sha256": "71d93d54599ea8a39ad0e583bea237ced69cd2a36a4f09e410bed32a0592c42d"
+  },
+  {
+    "id": "jerome",
+    "name": "Jerome",
+    "password_sha256": "b822f1cd2dcfc685b47e83e3980289fd5d8e3ff3a82def24d7d1d68bb272eb32"
+  }
+]

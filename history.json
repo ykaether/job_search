@@ -1,0 +1,38 @@
+[
+  {
+    "id": "09e250d5",
+    "date": "2026-04-07 11:16",
+    "title": "Business Strategy & Implementation - Business Analyst  @ UOB, Singapore",
+    "score": 7,
+    "recommendation": "Maybe",
+    "result": {
+      "score": 7,
+      "role_summary": "A business analyst role within UOB's Private Bank strategy team, focused on building dashboards/reports from multi-source data, presenting insights to senior management, and supporting strategic initiative execution.",
+      "why_it_fits": [
+        "Flagship project (turning fragmented ERP/CRM/Excel data into management dashboards) maps almost perfectly to the core JD requirement of integrating/transforming multi-source data into unified datasets and visualizations",
+        "Strong executive narrative and presentation skills align with the role's emphasis on presenting complex findings to non-technical stakeholders and preparing leadership-ready materials",
+        "Python proficiency (pandas, matplotlib, Streamlit) plus hands-on data processing experience satisfies the 'strong plus' technical requirements, and the candidate's business-tech hybrid positioning matches the role's blend of analytics and strategy"
+      ],
+      "main_risks": [
+        "The role requires minimum 3 years in dedicated data analytics roles — the candidate's experience is more business development with analytics as a tool, which may be perceived as insufficient pure analytics depth by HR screeners",
+        "No explicit banking or management consulting background, which is listed as preferred; UOB may prioritize candidates with financial services domain knowledge especially for Private Bank-specific analysis"
+      ],
+      "competitive_assessment": "Moderately competitive. The candidate's real-world dashboard-building and data transformation experience is genuinely relevant, and the strategic communication skills are a strong differentiator versus pure analysts. However, in Singapore's deep talent pool for banking BA roles, candidates with direct financial services analytics experience, formal data science degrees, and proficiency in UOB's likely BI stack (Qlik Sense, Power BI) will be strong competition. The Japanese bilingual capability is a mild differentiator at UOB given their APAC network but not a primary hiring factor for this specific role. 100+ applicants already indicates high competition.",
+      "recommendation": "Maybe",
+      "recommendation_reason": "Strong alignment on core competencies (data integration, dashboarding, executive storytelling) but the lack of banking/consulting experience and the risk of being screened out as 'not a pure analyst' make this a stretch — worth applying if the candidate can frame their supply-demand visibility project as a direct parallel.",
+      "cover_letter_opening": "As a business-technology hybrid professional who has hands-on built management dashboards by integrating fragmented ERP, CRM, and Excel data sources using Python and AI tools, I was immediately drawn to UOB's Business Strategy & Implementation Analyst role. My experience leading a supply-demand data visibility initiative — transforming scattered datasets into unified, decision-ready outputs for senior leadership — directly mirrors the core mandate of this position. I am eager to bring this blend of analytical execution and strategic storytelling to UOB's Private Bank team in Singapore.",
+      "keywords_matched": [
+        "dashboards",
+        "data-driven decision-making",
+        "integrate and transform data from multiple sources",
+        "presentation materials for leadership",
+        "Python",
+        "analytical mindset",
+        "business acumen",
+        "project management",
+        "strategic initiatives"
+      ]
+    },
+    "jd_preview": "会社ロゴ、UOB\nUOB\n\n\nBusiness Strategy & Implementation - Business Analyst \n\nシンガポール シンガポール · 1週間前に再投稿 · [応募] をクリックしたユーザー100人以上\n\n採用担当者がプロモート済み · LinkedIn外で管理されている回答\n\n正社員\n応募\n\n保存済み\nこの求人について\nAbout UOB\n\nUnited Overseas Bank Limited (UOB) is a leading bank in Asia with a global network of more than 500 branches"
+  }
+]

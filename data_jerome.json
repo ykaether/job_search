@@ -1,0 +1,45 @@
+{
+  "pipeline": [
+    {
+      "company": "Singapore Institute of Management",
+      "role": "Learning Specialist",
+      "status": "Not Applied",
+      "next_action": "検討",
+      "url": "https://www.linkedin.com/jobs/view/4375322658",
+      "source": "",
+      "country": "",
+      "city": "",
+      "job_id": "",
+      "salary": "",
+      "updated": "2026-04-08 20:34",
+      "eval_decision": "Stretch",
+      "eval_reason": "This L&D solutions BD role sits at the intersection of the candidate's training expertise and commercial acumen, offering a pathway toward consultative selling and client strategy, though it risks anchoring them in the L&D/human capital niche rather than a broader business-tech hybrid trajectory.",
+      "trajectory_fit": 1,
+      "core_strength_match": 1,
+      "attraction": 1,
+      "competitiveness": 2,
+      "secondary_strength_used": "L&D domain expertise and training program design are directly leveraged as the product knowledge foundation for solutioning and client pitching in this role.",
+      "practical_constraint": "Role appears to be Singapore-based, which aligns with the candidate's current location at AIG Singapore.",
+      "risk": "Medium",
+      "fit_bullets": [
+        "Deep L&D background directly maps to understanding and solutioning corporate learning challenges for clients",
+        "Commercial experience across sales, mortgage advisory, and digital marketing covers the BD and account management requirements",
+        "Proven stakeholder engagement and presentation skills (Gold Trainer, Meta Blueprint) align with client-facing pitch and proposal demands"
+      ],
+      "eval_risk": "The role is fundamentally an L&D solutions sales/BD position with no AI or technology transformation angle, which could deepen the candidate's L&D specialist identity rather than pivot toward business-tech hybrid leadership.",
+      "gap_note": "Formal B2B enterprise solution selling and account planning experience may be limited — the candidate's sales background appears more B2C/agency-oriented, though consultative selling skills are likely transferable.",
+      "direction_warning": "This role leverages your L&D strengths and commercial instincts but pulls you deeper into the human capital consulting/L&D vendor space rather than toward AI-enabled business strategy or GTM roles.",
+      "jd_text": "The incumbent will support the team in engaging and providing clients by creating value differentiating solutions.\nCreate research / account plans for clients, industries and sectors including power maps, buyer values, value propositions and opportunities \nAnalyse data to identify trends, patterns and suggest insights\nDraw out ideas on how the training solution provides a differentiated value proposition to the clients\nWrite concept paper and proposal documents for client pitching \nPrepare and present learning solutions and pricing models to internal and external stakeholder teams with confidence \nSupport presentations to mid to senior level client executives.\nInitiate and maintain relationships with clients.\nOversee and manage projects related and not limited to course documentation updates, monitoring course performance, event support & administration, etc.\nIdentify, recruit and onboard qualified faculty aligned to programme needs and organisational standards.\nJob Requirements\nMin 3 years of working experience with Business Development or Account Management experience or Enterprise Solution & B2C sales\nLearning and development, human capital or consulting background\nGood stakeholder management in complex working environment and multi-layered engagement.\nResearch and analyse data to suggest insights that are relevant and value add to the solutioning for client.\nDiscern corporate and human capital challenges and opportunities and relate with new learning paradigms.\nUnderstanding and sensemaking about clients’ context and challenges.\nAbility to conceptualize ideas into a presentation that tells a convincing story to the client about our differentiated value proposition.\nPromoting and selling - preferably around learning and development or human capital - solutions and outsourcing to clients\nWell organized, meticulous and ability to manage multiple projects at the same time.\nMotivational team player\nStrong interpersonal skills\nStrong oral and written communications\nProficient in Microsoft Office skills\nCollaborative and eager to work as a team to solve challenges\nDevelop sales strategies to ensure sustainable business pipeline\nDevelop comprehensive and action-oriented plans and strategies to engage clients\n\n\n\n\n\n\n\n        \n            Show more\n          \n\n          \n\n\n\n\n\n\n\n        \n            Show less",
+      "pdf_path": "",
+      "eval_profile_id": "default"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "default",
+      "name": "Default",
+      "text": "results-driven Learning & Development professional with strong experience in training design, facilitation, and performance coaching within corporate environments, currently serving as an Agency Trainer at AIG Singapore. unique blend of instructional expertise and commercial acumen, shaped by your background in customer experience, digital marketing, and mortgage advisory, including your time as a Meta Marketing Pro and multiple sales-focused roles. Known for developing structured learning programs, driving engagement, and aligning training initiatives with business goals, you have consistently demonstrated high performance—earning recognition such as TDCX Gold Trainer and Meta Blueprint certification—while maintaining a strong focus on learner impact, operational excellence, and continuous improvement."
+    }
+  ],
+  "active_profile_id": "default"
+}

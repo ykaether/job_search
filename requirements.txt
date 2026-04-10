@@ -1,0 +1,10 @@
+streamlit==1.55.0
+anthropic==0.89.0
+bcrypt==5.0.0
+requests==2.33.1
+pandas==2.3.3
+deep-translator==1.11.4
+qrcode==8.2
+pdfplumber==0.11.9
+beautifulsoup4==4.14.3
+Pillow==12.1.1
