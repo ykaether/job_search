@@ -58,6 +58,22 @@ def get_streamlit_port():
     except Exception:
         return 8501
 
+def get_public_base_url() -> str:
+    """Prefer the current public host (Render/ngrok/proxy), fall back to local URL."""
+    _ip = get_local_ip()
+    _port = get_streamlit_port()
+    _local_base = f"http://{_ip}:{_port}"
+    _fwd_host = ""
+    try:
+        if hasattr(st, "context") and hasattr(st.context, "headers"):
+            _fwd_host = (st.context.headers.get("x-forwarded-host", "")
+                         or st.context.headers.get("x-original-host", ""))
+    except Exception:
+        pass
+    if _fwd_host and _fwd_host not in (_ip, f"{_ip}:{_port}", "localhost", f"localhost:{_port}"):
+        return f"https://{_fwd_host}"
+    return _local_base
+
 def make_qr_image(url: str):
     qr = qrcode.QRCode(box_size=6, border=2)
     qr.add_data(url)
@@ -1997,9 +2013,7 @@ with st.sidebar:
     st.markdown("---")
     # ── Smartphone QR ────────────────────────────────────────────
     with st.expander(L["smartphone_qr"], expanded=False):
-        _sb_ip   = get_local_ip()
-        _sb_port = get_streamlit_port()
-        _sb_base = f"http://{_sb_ip}:{_sb_port}"
+        _sb_base = get_public_base_url()
         _sb_tok  = st.session_state.get("_session_token","")
         _sb_url  = f"{_sb_base}?t={_sb_tok}" if _sb_tok else _sb_base
         st.image(make_qr_image(_sb_url), width=180)
@@ -2038,22 +2052,8 @@ if _lang_new != _lang_val:
 
 # ── QR popover in header ──────────────────────────────────────────
 with _qr_col.popover("📱", use_container_width=True):
-    _qr_ip   = get_local_ip()
-    _qr_port = get_streamlit_port()
-    _local_base = f"http://{_qr_ip}:{_qr_port}"
+    _base_url = get_public_base_url()
     _sess_tok = st.session_state.get("_session_token", "")
-
-    # Detect ngrok / reverse-proxy URL from request headers
-    _fwd_host = ""
-    try:
-        if hasattr(st, "context") and hasattr(st.context, "headers"):
-            _fwd_host = (st.context.headers.get("x-forwarded-host","")
-                         or st.context.headers.get("x-original-host",""))
-    except Exception:
-        pass
-    _is_ngrok = bool(_fwd_host and _fwd_host not in (_qr_ip, f"{_qr_ip}:{_qr_port}", "localhost", f"localhost:{_qr_port}"))
-
-    _base_url = f"https://{_fwd_host}" if _is_ngrok else _local_base
     _qr_url   = f"{_base_url}?t={_sess_tok}" if _sess_tok else _base_url
 
     st.image(make_qr_image(_qr_url), width=180)
