@@ -97,6 +97,30 @@ def save_users(users):
     with open(USERS_FILE, "w") as f:
         json.dump(users, f, ensure_ascii=False, indent=2)
 
+def get_user_record(user_id: str):
+    users = load_users()
+    return next((u for u in users if u.get("id") == user_id), None)
+
+def get_user_lang(user_id: str, default: str = "EN") -> str:
+    user = get_user_record(user_id)
+    if not user:
+        return default
+    lang = user.get("lang", default)
+    return lang if lang in ("EN", "JP") else default
+
+def save_user_lang(user_id: str, lang: str):
+    if not user_id or user_id == "guest" or lang not in ("EN", "JP"):
+        return
+    users = load_users()
+    changed = False
+    for user in users:
+        if user.get("id") == user_id and user.get("lang") != lang:
+            user["lang"] = lang
+            changed = True
+            break
+    if changed:
+        save_users(users)
+
 def user_data_file(user_id):
     # 既存のdata.jsonはdefaultユーザーのデータとして使う
     if user_id == "default":
@@ -161,6 +185,7 @@ def login_as(user_id: str):
     for _k in ["active_profile_id", "sidebar_profile_sel"]:
         st.session_state.pop(_k, None)
     st.session_state["user_id"] = user_id
+    st.session_state["lang"] = get_user_lang(user_id, st.session_state.get("lang", "EN"))
     token = create_session(user_id)
     st.session_state["_session_token"] = token
     st.query_params["t"] = token
@@ -254,6 +279,7 @@ def render_login():
                         "name":          _reg_name.strip(),
                         "email":         _reg_email,
                         "password_hash": hash_password(_reg_pw1),
+                        "lang":          st.session_state.get("lang", "EN"),
                     })
                     save_users(_reg_users)
                     login_as(_reg_id)
@@ -307,6 +333,7 @@ def render_login():
                             if u["id"] == _leg_user["id"]:
                                 u["email"]         = _leg_email
                                 u["password_hash"] = hash_password(_leg_pw1)
+                                u["lang"]          = st.session_state.get("lang", "EN")
                                 u.pop("password_sha256", None)
                         save_users(_lu)
                         login_as(_leg_user["id"])
@@ -1772,6 +1799,7 @@ if not get_current_user_id():
     if _restored_uid:
         st.session_state["user_id"] = _restored_uid
         st.session_state["_session_token"] = _url_token
+        st.session_state["lang"] = get_user_lang(_restored_uid, st.session_state.get("lang", "EN"))
     else:
         if _url_token:
             st.query_params.pop("t", None)
@@ -2047,6 +2075,7 @@ _lang_new = _lang_col.selectbox("", ["EN", "JP"],
                                  label_visibility="collapsed")
 if _lang_new != _lang_val:
     st.session_state["lang"] = _lang_new
+    save_user_lang(get_current_user_id(), _lang_new)
     L = T[_lang_new]
     st.rerun()
 
@@ -2102,7 +2131,8 @@ with _acct_col.popover(_acct_icon, use_container_width=True):
                 else:
                     _pr_id = hashlib.md5(_pr_email.encode()).hexdigest()[:12]
                     _acct_users.append({"id": _pr_id, "name": _pr_name.strip(),
-                                        "email": _pr_email, "password_hash": hash_password(_pr_pw1)})
+                                        "email": _pr_email, "password_hash": hash_password(_pr_pw1),
+                                        "lang": st.session_state.get("lang", "EN")})
                     save_users(_acct_users)
                     login_as(_pr_id)
                     st.rerun()
