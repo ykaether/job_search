@@ -3189,7 +3189,7 @@ with tab_eval:
     fu1, fu2 = st.columns([5, 1])
     eval_url = fu1.text_input("🔗 LinkedIn URL (optional)", placeholder="https://www.linkedin.com/jobs/view/...",
                                key=f"eval_url_{_fgen}", label_visibility="visible")
-    _fetch_btn = fu2.button("Fetch", key=f"fetch_btn_{_fgen}", use_container_width=True, disabled=demo_mode)
+    _fetch_btn = fu2.button("Fetch", key=f"fetch_btn_{_fgen}", use_container_width=True)
     if _fetch_btn:
         _raw_url = eval_url.strip()
         if not _raw_url:
