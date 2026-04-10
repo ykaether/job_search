@@ -1698,6 +1698,36 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
 }
 /* Mobile: stack columns vertically, detail panel on top */
 @media (max-width: 640px) {
+    html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+        font-size: 17px !important;
+    }
+    p, .stMarkdown p, .stText, div[data-testid="stMarkdownContainer"] p {
+        font-size: 17px !important;
+        line-height: 1.72 !important;
+    }
+    h1 { font-size: 34px !important; line-height: 1.2 !important; }
+    h2 { font-size: 28px !important; line-height: 1.25 !important; }
+    h3 { font-size: 22px !important; line-height: 1.3 !important; }
+    small, .stCaption, [data-testid="stCaptionContainer"] p,
+    div[data-testid="stCaptionContainer"] {
+        font-size: 15px !important;
+        line-height: 1.55 !important;
+    }
+    button[role="tab"] {
+        font-size: 18px !important;
+    }
+    label[data-testid="stWidgetLabel"] p {
+        font-size: 15px !important;
+    }
+    input, textarea, [data-baseweb="input"] input {
+        font-size: 17px !important;
+    }
+    [data-testid="stButton"] button {
+        font-size: 17px !important;
+    }
+    [data-testid="stMetricValue"] {
+        font-size: 28px !important;
+    }
     /* Stack columns vertically */
     [data-testid="stHorizontalBlock"]:has(.detail-panel-marker) {
         flex-direction: column !important;
@@ -1736,17 +1766,18 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
         overflow: hidden !important;
     }
     [data-testid="stVerticalBlock"]:has(.dp-header-marker) {
-        padding: 14px 16px 10px !important;
+        padding: 18px 18px 12px !important;
         border-bottom: 1px solid #e2e8f0 !important;
         flex-shrink: 0 !important;
         background: white !important;
+        position: relative !important;
     }
     [data-testid="stVerticalBlock"]:has(.dp-body-marker) {
         flex: 1 !important;
         min-height: 0 !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
-        padding: 14px 16px 24px !important;
+        padding: 18px 18px 28px !important;
         background: white !important;
     }
     /* List column remains underneath overlay */
@@ -1774,6 +1805,29 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     [data-testid="stColumn"]:has(.detail-panel-marker) [data-testid="stButton"] button {
         min-width: 0 !important;
         width: 100% !important;
+    }
+    /* Close button: force true top-right placement on mobile overlay */
+    [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stMarkdownContainer"]:has(.close-btn-marker) + [data-testid="stButton"],
+    [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stMarkdownContainer"]:has(.close-btn-marker) ~ [data-testid="stButton"]:first-of-type {
+        position: absolute !important;
+        top: 14px !important;
+        right: 14px !important;
+        left: auto !important;
+        z-index: 30 !important;
+        width: 44px !important;
+        height: 44px !important;
+        margin: 0 !important;
+    }
+    [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stMarkdownContainer"]:has(.close-btn-marker) + [data-testid="stButton"] button,
+    [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stMarkdownContainer"]:has(.close-btn-marker) ~ [data-testid="stButton"]:first-of-type button {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        border-radius: 999px !important;
+        padding: 0 !important;
+        font-size: 20px !important;
+        line-height: 1 !important;
+        justify-content: center !important;
     }
 }
 .detail-panel-marker { display: none !important; }
