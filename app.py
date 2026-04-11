@@ -3005,26 +3005,24 @@ with tab_overview:
                         else:
                             _sbg, _sfg = "#dc2626", "#fee2e2"
 
-                    # ── Top row: title | ✕ ──
+                    # ── Top row: title + close button ──
+                    st.markdown('<span class="dp-title-close-row-marker"></span>', unsafe_allow_html=True)
                     _dph_t, _dph_x = st.columns([8.8, 0.8])
                     with _dph_t:
-                        st.markdown('<span class="dp-title-close-row-marker"></span>', unsafe_allow_html=True)
+                        _dp_role = _sel_e.get("role","") or _sel_e.get("company","")
+                        _dp_company = _sel_e.get("company","")
                         st.markdown(
-                            f'<div style="font-size:18px;font-weight:700;color:#111;line-height:1.3;'
-                            f'word-break:break-word;white-space:normal;margin-bottom:0">'
-                            f'{_sel_e.get("role","") or _sel_e.get("company","")}</div>',
+                            f'<div style="font-size:20px;font-weight:700;color:#111;line-height:1.3;'
+                            f'word-break:break-word;white-space:normal;margin-bottom:4px">'
+                            f'{_dp_role}</div>'
+                            f'<div style="font-size:16px;font-weight:600;color:#374151;margin-bottom:4px">'
+                            f'{_dp_company}</div>',
                             unsafe_allow_html=True
                         )
                     with _dph_x:
                         if st.button("✕", key="close_detail", type="secondary"):
                             st.session_state.pop("pipeline_selected_idx", None)
                             st.rerun()
-
-                    st.markdown(
-                        f'<div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:3px">'
-                        f'{_sel_e.get("company","")}</div>',
-                        unsafe_allow_html=True
-                    )
                     if _score100_dp is not None:
                         _ds_sp, _ds_score = st.columns([1, 1.2])
                         with _ds_sp:
