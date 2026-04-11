@@ -16,6 +16,7 @@ import requests
 import xml.etree.ElementTree as ET
 import pandas as pd
 import uuid
+from html import escape
 from datetime import date, datetime, timedelta
 from deep_translator import GoogleTranslator
 import qrcode
@@ -1021,6 +1022,7 @@ T = {
         "title": "Opportunity Tracker",
         "tab_pipeline": "Pipeline",
         "tab_eval": "Evaluate & Apply",
+        "tab_list": "List",
         "goal": "Goal & Funnel",
         "target_offers": "Target offers needed for decision",
         "filter": "Filter by Status",
@@ -1232,6 +1234,7 @@ T = {
         "title": "Opportunity Tracker",
         "tab_pipeline": "パイプライン",
         "tab_eval": "評価・応募",
+        "tab_list": "一覧",
         "goal": "目標・ファネル",
         "target_offers": "意思決定に必要な内定数",
         "filter": "ステータスで絞り込み",
@@ -1524,6 +1527,46 @@ button[role="tab"][aria-selected="true"] {
     font-weight: 500 !important;
     color: #1a1a1a !important;
 }
+.header-top-row-marker,
+.header-menu-panel-marker,
+.dp-title-close-row-marker,
+.detail-score-row-marker { display: none !important; }
+[data-testid="stVerticalBlock"]:has(.header-top-row-marker) [data-testid="stHorizontalBlock"] {
+    align-items: flex-start !important;
+    margin-top: 0 !important;
+    flex-wrap: nowrap !important;
+}
+[data-testid="stVerticalBlock"]:has(.header-top-row-marker) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+}
+[data-testid="stVerticalBlock"]:has(.header-top-row-marker) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2),
+[data-testid="stVerticalBlock"]:has(.header-top-row-marker) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
+    flex: 0 0 auto !important;
+    min-width: 42px !important;
+    width: 42px !important;
+    align-self: flex-start !important;
+}
+/* Override: profile button columns must not inherit header 42px width */
+[data-testid="stVerticalBlock"]:has(.profile-save-row-marker) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+[data-testid="stVerticalBlock"]:has(.profile-new-row-marker) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+[data-testid="stVerticalBlock"]:has(.profile-create-row-marker) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+    flex: 1 1 0% !important;
+    width: auto !important;
+    min-width: 0 !important;
+}
+[data-testid="stVerticalBlock"]:has(.header-top-row-marker) [data-testid="stButton"] button {
+    min-width: 42px !important;
+    width: 42px !important;
+    height: 42px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+[data-testid="stVerticalBlock"]:has(.header-menu-panel-marker) [data-testid="stRadio"] > div {
+    justify-content: center !important;
+}
 
 /* ── Widget labels ── */
 label[data-testid="stWidgetLabel"] p {
@@ -1539,7 +1582,9 @@ input, textarea, [data-baseweb="input"] input {
 
 /* ── Buttons ── */
 button[kind="secondary"] { font-size: 14px !important; font-weight: 500 !important; }
-button[kind="primary"]   { font-size: 14px !important; font-weight: 600 !important; }
+button[kind="primary"]   { font-size: 14px !important; font-weight: 600 !important; color: #fff !important; background-color: #2563eb !important; border-color: #2563eb !important; }
+button[kind="primary"] p { color: #fff !important; }
+button[kind="primary"]:disabled { background-color: #93b4f5 !important; border-color: #93b4f5 !important; color: #fff !important; }
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] p,
@@ -1598,20 +1643,28 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     [data-testid="stRadio"] > div {
         justify-content: center !important;
     }
-    [data-testid="stHorizontalBlock"]:has(.desktop-header-row-marker) {
+    [data-testid="stVerticalBlock"]:has(.desktop-header-row-marker),
+    [data-testid="stHorizontalBlock"]:has(.desktop-header-row-marker),
+    [data-testid="stVerticalBlock"]:has(.desktop-header-controls-marker),
+    [data-testid="stColumn"]:has(.desktop-header-controls-marker) {
         display: none !important;
     }
+    [data-testid="stVerticalBlock"]:has(.mobile-header-row-marker),
+    [data-testid="stHorizontalBlock"]:has(.mobile-header-row-marker) {
+        display: block !important;
+        margin-bottom: 4px !important;
+    }
+    [data-testid="stVerticalBlock"]:has(.mobile-header-row-marker) [data-testid="stHorizontalBlock"],
     [data-testid="stHorizontalBlock"]:has(.mobile-header-row-marker) {
         display: flex !important;
         align-items: center !important;
         gap: 8px !important;
-        margin-bottom: 4px !important;
     }
-    [data-testid="stHorizontalBlock"]:has(.mobile-header-row-marker) > [data-testid="stColumn"]:first-child {
+    [data-testid="stVerticalBlock"]:has(.mobile-header-row-marker) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
         min-width: 0 !important;
         flex: 1 1 auto !important;
     }
-    [data-testid="stHorizontalBlock"]:has(.mobile-header-row-marker) > [data-testid="stColumn"]:last-child {
+    [data-testid="stVerticalBlock"]:has(.mobile-header-row-marker) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
         flex: 0 0 44px !important;
         width: 44px !important;
         min-width: 44px !important;
@@ -1623,17 +1676,71 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     *:has(.pipeline-card-marker) + * button[kind="primary"] {
         font-weight: 600 !important;
     }
+    /* Evaluate fetch row: stack URL input and full-width Fetch on mobile */
+    [data-testid="stHorizontalBlock"]:has(.eval-fetch-row-marker) {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.eval-fetch-row-marker) > [data-testid="stColumn"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        flex: 1 1 100% !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.eval-fetch-row-marker) > [data-testid="stColumn"] > div {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.eval-fetch-row-marker) [data-testid="stButton"] {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.eval-fetch-row-marker) [data-testid="stButton"] button {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 42px !important;
+    }
+    /* Compact action rows on mobile */
+    /* Profile button pairs: no wrap, touch-friendly */
+    [data-testid="stVerticalBlock"]:has(.profile-save-row-marker) [data-testid="stButton"] button,
+    [data-testid="stVerticalBlock"]:has(.profile-new-row-marker) [data-testid="stButton"] button,
+    [data-testid="stVerticalBlock"]:has(.profile-create-row-marker) [data-testid="stButton"] button {
+        white-space: nowrap !important;
+        min-height: 44px !important;
+    }
+    /* Eval action row: Evaluate wide, Clear fixed */
+    [data-testid="stHorizontalBlock"]:has(.eval-action-row-marker) > [data-testid="stColumn"]:first-child {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.eval-action-row-marker) > [data-testid="stColumn"]:last-child {
+        flex: 0 0 88px !important;
+        width: 88px !important;
+        min-width: 88px !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.eval-action-row-marker) [data-testid="stButton"] button {
+        width: 100% !important;
+        min-height: 42px !important;
+    }
 }
 .desktop-header-controls-marker,
 .mobile-header-menu-marker,
 .desktop-header-row-marker,
 .mobile-header-row-marker { display: none !important; }
-[data-testid="stHorizontalBlock"]:has(.mobile-header-row-marker) {
+.eval-fetch-row-marker,
+.eval-main-row-marker,
+.eval-meta-row-marker,
+.eval-action-row-marker,
+.profile-save-row-marker,
+.profile-new-row-marker,
+.profile-create-row-marker { display: none !important; }
+[data-testid="stVerticalBlock"]:has(.mobile-header-row-marker) {
     display: none !important;
 }
-[data-testid="stHorizontalBlock"]:has(.desktop-header-row-marker) {
-    display: flex !important;
-    align-items: center !important;
+[data-testid="stVerticalBlock"]:has(.desktop-header-row-marker) {
+    display: block !important;
 }
 [data-testid="stHorizontalBlock"]:has(.overview-filter-marker) {
     gap: 12px !important;
@@ -1687,6 +1794,7 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     position: relative !important;
 }
 .dp-header-marker, .dp-body-marker { display: none !important; }
+.dp-top-controls-row-marker { display: none !important; }
 /* Header container: fixed, no scroll, with proper padding */
 [data-testid="stVerticalBlock"]:has(.dp-header-marker) {
     flex-shrink: 0 !important;
@@ -1706,6 +1814,28 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
 [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stHorizontalBlock"] {
     gap: 6px !important;
     margin-top: 8px !important;
+}
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stHorizontalBlock"]:has(.dp-title-close-row-marker),
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stHorizontalBlock"]:has(.detail-score-row-marker) {
+    margin-top: 0 !important;
+    margin-bottom: 10px !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    overflow: visible !important;
+}
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stHorizontalBlock"]:has(.dp-title-close-row-marker) > [data-testid="stColumn"]:first-child,
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stHorizontalBlock"]:has(.detail-score-row-marker) > [data-testid="stColumn"]:first-child {
+    flex: 1 1 auto !important;
+    width: auto !important;
+}
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stHorizontalBlock"]:has(.dp-title-close-row-marker) > [data-testid="stColumn"]:last-child,
+[data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stHorizontalBlock"]:has(.detail-score-row-marker) > [data-testid="stColumn"]:last-child {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: fit-content !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    overflow: visible !important;
 }
 /* Close button: styled compact in its column */
 [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stButton"]:has(button[kind="secondary"]:not([data-testid])) button,
@@ -1786,6 +1916,11 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     button[role="tab"] {
         font-size: 18px !important;
     }
+    [data-testid="stExpander"] summary p {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
     label[data-testid="stWidgetLabel"] p {
         font-size: 15px !important;
     }
@@ -1802,6 +1937,21 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
         gap: 8px !important;
         padding: 10px 12px !important;
         border-radius: 12px !important;
+    }
+    [data-testid="stVerticalBlock"]:has(.header-top-row-marker) [data-testid="stHorizontalBlock"] {
+        gap: 6px !important;
+        align-items: flex-start !important;
+        margin-top: -18px !important;
+    }
+    [data-testid="stVerticalBlock"]:has(.header-top-row-marker) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2),
+    [data-testid="stVerticalBlock"]:has(.header-top-row-marker) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
+        margin-top: 0 !important;
+        align-self: flex-start !important;
+    }
+    [data-testid="stVerticalBlock"]:has(.header-top-row-marker) [data-testid="stButton"] {
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: flex-end !important;
     }
     /* Stack columns vertically */
     [data-testid="stHorizontalBlock"]:has(.detail-panel-marker) {
@@ -1847,6 +1997,11 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
         background: white !important;
         position: relative !important;
     }
+    [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stHorizontalBlock"]:has(.dp-title-close-row-marker),
+    [data-testid="stVerticalBlock"]:has(.dp-header-marker) [data-testid="stHorizontalBlock"]:has(.detail-score-row-marker) {
+        margin-bottom: 12px !important;
+        min-height: 48px !important;
+    }
     [data-testid="stVerticalBlock"]:has(.dp-body-marker) {
         flex: 1 !important;
         min-height: 0 !important;
@@ -1888,6 +2043,7 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
         line-height: 1 !important;
         justify-content: center !important;
         min-height: 44px !important;
+        min-width: 44px !important;
     }
 }
 .detail-panel-marker { display: none !important; }
@@ -1933,6 +2089,8 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     color: #1e3a8a !important;
 }
 .pipeline-card-row-marker { display: none !important; }
+.pipeline-card-selected-marker { display: none !important; }
+.overview-card-open-marker { display: none !important; }
 [data-testid="stHorizontalBlock"]:has(.pipeline-card-row-marker) {
     align-items: stretch !important;
     gap: 10px !important;
@@ -1942,8 +2100,31 @@ span[data-baseweb="tag"] svg { fill: #1d4ed8 !important; }
     padding: 12px 14px !important;
     margin-bottom: 10px !important;
 }
+[data-testid="stHorizontalBlock"]:has(.pipeline-card-selected-marker) {
+    border-color: #2563eb !important;
+    background: #eff6ff !important;
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.08) !important;
+}
 [data-testid="stHorizontalBlock"]:has(.pipeline-card-row-marker) > [data-testid="stColumn"] {
     min-width: 0 !important;
+}
+[data-testid="stVerticalBlock"]:has(.overview-card-open-marker) {
+    position: relative !important;
+}
+[data-testid="stVerticalBlock"]:has(.overview-card-open-marker) > div > [data-testid="stButton"] {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 5 !important;
+}
+[data-testid="stVerticalBlock"]:has(.overview-card-open-marker) > div > [data-testid="stButton"] button {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 84px !important;
+    opacity: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
 }
 [data-testid="stHorizontalBlock"]:has(.pipeline-card-row-marker) [data-testid="stButton"] button {
     border: none !important;
@@ -2305,7 +2486,140 @@ def render_account_panel(prefix: str, label_map, has_backup_flag: bool):
                 st.session_state.pop(_k, None)
             st.rerun()
 
+def truncate_single_line(text: str, max_chars: int = 28) -> str:
+    text = (text or "").strip()
+    if len(text) <= max_chars:
+        return text
+    return text[: max_chars - 1].rstrip() + "…"
+
+def entry_score_100(entry):
+    _total = get_total(entry)
+    return round(_total / 8 * 100) if _total is not None else -1
+
+def build_entry_scan_parts(entry):
+    _score_n = entry_score_100(entry)
+    _decision = entry.get("eval_decision", "") or "—"
+    _status = entry.get("status", "Not Applied")
+    _company = entry.get("company", "—")
+    _role = entry.get("role", "—")
+    _url = entry.get("url", "")
+    _reason = entry.get("eval_reason", "").strip()
+    _loc = " / ".join(p for p in [entry.get("country", ""), entry.get("city", "")] if p)
+    _salary = entry.get("salary", "")
+    _source = entry.get("source", "")
+    _meta = "  ·  ".join(p for p in [_loc, _salary, _source] if p)
+    _preview = (_reason[:85] + "…" if len(_reason) > 85 else _reason) if _reason else ""
+    return {
+        "score_n": _score_n,
+        "decision": _decision,
+        "status": _status,
+        "status_icon": STATUS_BADGE.get(_status, "⚪"),
+        "company": _company,
+        "role": _role,
+        "title": _role or _company,
+        "url": _url,
+        "meta": _meta,
+        "preview": _preview,
+    }
+
+def render_scan_card_row(parts):
+    _preview_text = parts["preview"] or "  ·  ".join(p for p in [parts["meta"]] if p)
+    _meta_line = (
+        f'<div style="font-size:12px;color:#9ca3af;margin-top:2px">{parts["meta"]}</div>'
+        if parts["meta"] else ""
+    )
+    _preview_line = (
+        f'<div style="font-size:13px;color:#6b7280;overflow:hidden;display:-webkit-box;'
+        f'-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-top:3px">{_preview_text}</div>'
+        if _preview_text else ""
+    )
+    st.markdown(
+        f'<div style="display:flex;align-items:flex-start;gap:12px;padding:6px 0">'
+        f'{score_square_html(parts["score_n"], size=52, font_size=20)}'
+        f'<div style="flex:1;min-width:0">'
+        f'<div style="font-size:16px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;'
+        f'text-overflow:ellipsis">{parts["title"]}</div>'
+        f'<div style="font-size:13px;color:#595959;white-space:nowrap;overflow:hidden;'
+        f'text-overflow:ellipsis;margin-top:1px">{parts["company"]}</div>'
+        f'{_meta_line}{_preview_line}</div>'
+        f'<div style="text-align:right;flex-shrink:0;font-size:13px;color:#9ca3af">'
+        f'{parts["status_icon"]}<br><span style="font-size:11px">{parts["decision"]}</span></div>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+
+def render_pipeline_scan_list(entries, empty_label: str, count_label: str | None = None, key_prefix: str = "scan"):
+    if not entries:
+        st.info(empty_label)
+        return
+
+    if count_label:
+        st.caption(count_label)
+
+    for _idx, _entry in entries:
+        _parts = build_entry_scan_parts(_entry)
+        render_scan_card_row(_parts)
+        _lc1, _lc2 = st.columns([5, 1])
+        if _parts["url"]:
+            _lc1.markdown(f"[→ Apply on Company / Job Site]({_parts['url']})")
+        _is_saved = _entry.get("bookmarked", False)
+        if _lc2.button("⭐" if _is_saved else "☆", key=f"{key_prefix}_star_{_idx}",
+                       help=L["unbookmark"] if _is_saved else L["bookmark"],
+                       use_container_width=True,
+                       type="primary" if _is_saved else "secondary",
+                       disabled=demo_mode):
+            _d = load_data()
+            _d["pipeline"][_idx]["bookmarked"] = not _is_saved
+            save_data(_d)
+            st.rerun()
+        st.markdown("---")
+
+def render_pipeline_dense_list(entries, empty_label: str, count_label: str | None = None):
+    if not entries:
+        st.info(empty_label)
+        return
+    if count_label:
+        st.caption(count_label)
+
+    _rows = []
+    for _idx, _entry in entries:
+        _parts = build_entry_scan_parts(_entry)
+        _location = " / ".join(p for p in [_entry.get("country", ""), _entry.get("city", "")] if p) or "—"
+        _rows.append(
+            "<tr>"
+            f"<td>{escape(str(_parts['score_n'])) if _parts['score_n'] >= 0 else '—'}</td>"
+            f"<td>{escape(_parts['company'])}</td>"
+            f"<td>{escape(_parts['title'])}</td>"
+            f"<td>{escape(_parts['status'])}</td>"
+            f"<td>{escape(_parts['decision'])}</td>"
+            f"<td>{escape(_entry.get('source', '') or '—')}</td>"
+            f"<td>{escape(_location)}</td>"
+            "</tr>"
+        )
+
+    st.markdown(
+        "<div style='overflow-x:auto;border:1px solid #e5e7eb;border-radius:14px;background:#fff'>"
+        "<table style='width:100%;min-width:760px;border-collapse:collapse;font-size:14px'>"
+        "<thead>"
+        "<tr style='background:#f8fafc;color:#475569'>"
+        "<th style='padding:12px 10px;text-align:left;border-bottom:1px solid #e5e7eb'>Score</th>"
+        "<th style='padding:12px 10px;text-align:left;border-bottom:1px solid #e5e7eb'>Company</th>"
+        "<th style='padding:12px 10px;text-align:left;border-bottom:1px solid #e5e7eb'>Role</th>"
+        "<th style='padding:12px 10px;text-align:left;border-bottom:1px solid #e5e7eb'>Status</th>"
+        "<th style='padding:12px 10px;text-align:left;border-bottom:1px solid #e5e7eb'>Decision</th>"
+        "<th style='padding:12px 10px;text-align:left;border-bottom:1px solid #e5e7eb'>Source</th>"
+        "<th style='padding:12px 10px;text-align:left;border-bottom:1px solid #e5e7eb'>Location</th>"
+        "</tr>"
+        "</thead>"
+        "<tbody>"
+        + "".join(_rows)
+        + "</tbody></table></div>",
+        unsafe_allow_html=True,
+    )
+
 data = load_data()
+if "header_menu_open" not in st.session_state:
+    st.session_state["header_menu_open"] = False
 
 def render_brand(_col):
     if os.path.exists(LOGO_PATH):
@@ -2313,61 +2627,63 @@ def render_brand(_col):
     else:
         _col.markdown('<p style="font-size:18px;font-weight:700;margin:0 0 4px 0;color:#1E293B">KoaFlux</p>', unsafe_allow_html=True)
 
-_title_col, _lang_col, _qr_col, _acct_col = st.columns([4.6, 1, 1, 1])
-_title_col.markdown('<span class="desktop-header-row-marker"></span>', unsafe_allow_html=True)
-render_brand(_title_col)
+with st.container():
+    st.markdown('<span class="header-top-row-marker"></span>', unsafe_allow_html=True)
+    _title_col, _undo_col, _menu_col = st.columns([6, 1, 1])
+    render_brand(_title_col)
+    if _undo_col.button("↶", key="header_undo_btn", help=L["undo_help"], disabled=not has_backup):
+        if undo_save():
+            st.rerun()
+    if _menu_col.button("☰", key="header_menu_toggle_btn"):
+        st.session_state["header_menu_open"] = not st.session_state.get("header_menu_open", False)
+        st.rerun()
+
+if st.session_state.get("header_menu_open"):
+    with st.container(border=True):
+        st.markdown('<span class="header-menu-panel-marker"></span>', unsafe_allow_html=True)
+        _mh1, _mh2 = st.columns([1, 0.14])
+        _mh1.markdown("**Menu**")
+        if _mh2.button("✕", key="header_menu_close_btn"):
+            st.session_state["header_menu_open"] = False
+            st.rerun()
+        _menu_lang_val = st.session_state["lang"]
+        _lang_left, _lang_mid, _lang_right = st.columns([1, 2.4, 1])
+        with _lang_mid:
+            _menu_lang_new = st.radio(
+                "Language",
+                ["EN", "JP"],
+                index=["EN", "JP"].index(_menu_lang_val),
+                key="header_menu_lang_radio",
+                horizontal=True,
+            )
+        if _menu_lang_new != _menu_lang_val:
+            st.session_state["lang"] = _menu_lang_new
+            save_user_lang(get_current_user_id(), _menu_lang_new)
+            st.rerun()
+        st.markdown("---")
+        st.markdown("**Me**")
+        _menu_uid = get_current_user_id()
+        _menu_users = load_users()
+        _menu_user = next((u for u in _menu_users if u["id"] == _menu_uid), None)
+        if _menu_user and _menu_uid != "guest":
+            st.markdown(f"**{_menu_user.get('name', _menu_uid)}**")
+            if _menu_user.get("email"):
+                st.caption(_menu_user.get("email"))
+            if st.button(L["logout"], key="header_menu_logout_btn", use_container_width=True):
+                delete_session(st.session_state.get("_session_token", ""))
+                st.query_params.pop("t", None)
+                for _k in ["user_id", "active_profile_id", "sidebar_profile_sel", "_session_token"]:
+                    st.session_state.pop(_k, None)
+                st.session_state["header_menu_open"] = False
+                st.rerun()
+        else:
+            render_account_panel("header_menu_account", L, has_backup)
+        st.markdown("---")
+        st.markdown(f"**{L['smartphone_qr']}**")
+        render_qr_panel("header_menu_qr")
 
 if demo_mode:
     demo_notice()
-
-# ── Language toggle: compact selectbox ───────────────────────────
-_lang_val = st.session_state["lang"]
-_lang_col.markdown('<span class="desktop-header-controls-marker"></span>', unsafe_allow_html=True)
-_lang_new = _lang_col.selectbox("", ["EN", "JP"],
-                                 index=["EN","JP"].index(_lang_val),
-                                 key="lang_select",
-                                 label_visibility="collapsed")
-if _lang_new != _lang_val:
-    st.session_state["lang"] = _lang_new
-    save_user_lang(get_current_user_id(), _lang_new)
-    L = T[_lang_new]
-    st.rerun()
-
-# ── QR popover in header ──────────────────────────────────────────
-_qr_col.markdown('<span class="desktop-header-controls-marker"></span>', unsafe_allow_html=True)
-with _qr_col.popover("📱", use_container_width=True):
-    render_qr_panel("header_qr")
-
-# ── Account popover ───────────────────────────────────────────────
-_acct_uid    = get_current_user_id()
-_acct_users  = load_users()
-_acct_uname  = next((u["name"] for u in _acct_users if u["id"] == _acct_uid), _acct_uid)
-_is_guest    = (_acct_uid == "guest")
-_acct_icon   = "👤"
-
-_acct_col.markdown('<span class="desktop-header-controls-marker"></span>', unsafe_allow_html=True)
-with _acct_col.popover(_acct_icon, use_container_width=True):
-    render_account_panel("pop", L, has_backup)
-
-_mtitle_col, _mmenu_col = st.columns([1, 0.16])
-_mtitle_col.markdown('<span class="mobile-header-row-marker"></span>', unsafe_allow_html=True)
-render_brand(_mtitle_col)
-_mmenu_col.markdown('<span class="mobile-header-row-marker"></span><span class="mobile-header-menu-marker"></span>', unsafe_allow_html=True)
-with _mmenu_col.popover("☰", use_container_width=True):
-    st.markdown("**Menu**")
-    _m_lang_val = st.session_state["lang"]
-    _m_lang_new = st.selectbox("Language", ["EN", "JP"],
-                               index=["EN", "JP"].index(_m_lang_val),
-                               key="mobile_lang_select")
-    if _m_lang_new != _m_lang_val:
-        st.session_state["lang"] = _m_lang_new
-        save_user_lang(get_current_user_id(), _m_lang_new)
-        st.rerun()
-    st.markdown("---")
-    with st.expander(L["smartphone_qr"], expanded=False):
-        render_qr_panel("mobile_qr")
-    st.markdown("---")
-    render_account_panel("mobile_menu", L, has_backup)
 
 # ── Profile toggle (main area, mobile-friendly) ───────────────────────────
 _mp_data = load_data()
@@ -2376,8 +2692,9 @@ if not _mp_profiles:
     _mp_profiles = [{"id": "default", "name": "Default", "text": PROFILE}]
 _mp_pid = get_active_profile_id(_mp_data)
 _mp_pname = next((p["name"] for p in _mp_profiles if p["id"] == _mp_pid), _mp_profiles[0]["name"])
+_mp_label_name = truncate_single_line(_mp_pname, 18)
 
-with st.expander(L["profile_toggle"] + f": {_mp_pname}", expanded=False):
+with st.expander(L["profile_toggle"] + f": {_mp_label_name}", expanded=False):
     _mp_names = [p["name"] for p in _mp_profiles]
     _mp_ids   = [p["id"]   for p in _mp_profiles]
     _mp_ai    = _mp_ids.index(_mp_pid) if _mp_pid in _mp_ids else 0
@@ -2424,8 +2741,11 @@ with st.expander(L["profile_toggle"] + f": {_mp_pname}", expanded=False):
     _mp_edit_text = st.text_area("Profile text", value=_mp_sel_prof["text"], height=220,
                                   key="mp_edit_text", label_visibility="visible")
 
-    _mpc1, _mpc2 = st.columns([2, 1])
-    if _mpc1.button(L["save_btn"], key="mp_save_btn"):
+    st.markdown('<span class="profile-save-row-marker"></span>', unsafe_allow_html=True)
+    _mpc1, _mpc2 = st.columns(2)
+    _save_label = "保存" if st.session_state.get("lang","EN")=="JP" else "Save"
+    _del_label  = "削除" if st.session_state.get("lang","EN")=="JP" else "Delete"
+    if _mpc1.button(_save_label, key="mp_save_btn", use_container_width=True):
         _d = load_data()
         for _p in _d["profiles"]:
             if _p["id"] == _mp_sel_pid:
@@ -2436,7 +2756,7 @@ with st.expander(L["profile_toggle"] + f": {_mp_pname}", expanded=False):
         st.success(L["profile_saved"])
         st.rerun()
     if len(_mp_profiles) > 1:
-        if _mpc2.button(L["delete_profile_btn"], key="mp_del_btn"):
+        if _mpc2.button(_del_label, key="mp_del_btn", use_container_width=True):
             _d = load_data()
             _d["profiles"] = [_p for _p in _d["profiles"] if _p["id"] != _mp_sel_pid]
             _d["active_profile_id"] = _d["profiles"][0]["id"]
@@ -2446,10 +2766,13 @@ with st.expander(L["profile_toggle"] + f": {_mp_pname}", expanded=False):
 
     st.markdown("---")
     st.caption(L["new_profile"])
+    st.markdown('<span class="profile-new-row-marker"></span>', unsafe_allow_html=True)
     _mpn1, _mpn2 = st.columns(2)
-    if _mpn1.button(L["new_blank_btn"], key="mp_new_blank"):
+    _blank_label = "ブランク" if st.session_state.get("lang","EN")=="JP" else "Blank"
+    _copy_label  = "コピー"   if st.session_state.get("lang","EN")=="JP" else "Copy"
+    if _mpn1.button(_blank_label, key="mp_new_blank", use_container_width=True):
         st.session_state["mp_adding"] = "blank"
-    if _mpn2.button(L["new_copy_btn"], key="mp_new_copy"):
+    if _mpn2.button(_copy_label, key="mp_new_copy", use_container_width=True):
         st.session_state["mp_adding"] = "copy"
 
     _mp_adding = st.session_state.get("mp_adding")
@@ -2461,8 +2784,9 @@ with st.expander(L["profile_toggle"] + f": {_mp_pname}", expanded=False):
         if _mp_adding == "blank":
             _mp_new_text = st.text_area("Profile text", height=120, key="mp_new_text",
                                          label_visibility="collapsed", placeholder="Write your profile here...")
+        st.markdown('<span class="profile-create-row-marker"></span>', unsafe_allow_html=True)
         _mpc3, _mpc4 = st.columns(2)
-        if _mpc3.button(L["create_btn"], key="mp_create_btn"):
+        if _mpc3.button(L["create_btn"], key="mp_create_btn", use_container_width=True):
             if _mp_new_name.strip():
                 _d = load_data()
                 _new_id = _mp_new_name.strip().lower().replace(" ", "_") + f"_{len(_d['profiles'])}"
@@ -2473,7 +2797,7 @@ with st.expander(L["profile_toggle"] + f": {_mp_pname}", expanded=False):
                 del st.session_state["mp_adding"]
                 save_data(_d)
                 st.rerun()
-        if _mpc4.button(L["cancel"], key="mp_cancel_btn"):
+        if _mpc4.button(L["cancel"], key="mp_cancel_btn", use_container_width=True):
             del st.session_state["mp_adding"]
             st.rerun()
 
@@ -2551,7 +2875,14 @@ with st.expander(L["profile_toggle"] + f": {_mp_pname}", expanded=False):
                     save_users(_acc_users)
                     st.success(L["pw_changed"])
 
-tab_overview, tab_saved, tab_eval, tab_discover, tab_insights = st.tabs([L["tab_overview"], L["tab_saved"], L["tab_eval"], L["tab_discover"], L["tab_insights"]])
+tab_eval, tab_overview, tab_list, tab_saved, tab_discover, tab_insights = st.tabs([
+    L["tab_eval"],
+    L["tab_overview"],
+    L["tab_list"],
+    L["tab_saved"],
+    L["tab_discover"],
+    L["tab_insights"],
+])
 
 # ════════════════════════════════════════
 # TAB 1: OVERVIEW
@@ -2581,28 +2912,6 @@ with tab_overview:
     if not pipeline:
         st.info(L["no_pipeline"])
     else:
-        # ── Stats row ────────────────────────────────────────────
-        counts = {s: sum(1 for p in pipeline if p.get("status") == s) for s in STATUS_OPTIONS}
-        _stat_items = [
-            ("⚪", "Not Applied", counts.get("Not Applied", 0)),
-            ("🔵", "Applied",     counts.get("Applied", 0)),
-            ("🟡", "Interview",   counts.get("Interview", 0)),
-            ("🟢", "Offer",       counts.get("Offer", 0)),
-            ("🔴", "Rejected",    counts.get("Rejected", 0)),
-            ("⛔", "Skip",        counts.get("Skip", 0)),
-        ]
-        _cells = "".join(
-            f'<td style="padding:4px 8px;text-align:center;white-space:nowrap">'
-            f'<span style="font-size:11px;color:#888">{icon} {label}</span><br>'
-            f'<strong style="font-size:16px">{n}</strong></td>'
-            for icon, label, n in _stat_items
-        )
-        st.markdown(
-            f'<table style="width:100%;border-collapse:collapse"><tr>{_cells}</tr></table>',
-            unsafe_allow_html=True
-        )
-        st.markdown("")
-
         # ── Filters: collapse by default so mobile keeps room for the list ──
         st.markdown('<span class="overview-filter-marker"></span>', unsafe_allow_html=True)
         with st.expander("Filters", expanded=False):
@@ -2633,61 +2942,35 @@ with tab_overview:
 
         # ── Card list ────────────────────────────────────────────
         with _list_col:
-         for orig_idx, entry in pipeline_filtered:
-            i        = orig_idx
-            score_n  = _entry_score(entry)
-            decision = entry.get("eval_decision","")
-            status   = entry.get("status","Not Applied")
-            has_jd   = bool(entry.get("jd_text"))
-            url      = entry.get("url","")
-            company  = entry.get("company","—")
-            role     = entry.get("role","—")
-
-            score_str   = str(score_n) if score_n >= 0 else "—"
-            status_icon = STATUS_BADGE.get(status,"⚪")
-            dec_label   = decision if decision else "—"
-            _is_sel     = (st.session_state.get("pipeline_selected_idx") == i)
-
-            _reason  = entry.get("eval_reason","").strip()
-            _loc     = " / ".join(p for p in [entry.get("country",""), entry.get("city","")] if p)
-            _salary  = entry.get("salary","")
-
-            _dec_text      = f"  [{dec_label}]" if dec_label and dec_label != "—" else ""
-            _meta_text     = "  ·  ".join(p for p in [_loc, _salary, entry.get("source","")] if p)
-            _preview_short = (_reason[:70] + "…" if len(_reason) > 70 else _reason) if _reason else ""
-            if score_n >= 75:   _score_dot = "🟢"
-            elif score_n >= 50: _score_dot = "🟡"
-            elif score_n >= 0:  _score_dot = "🔴"
-            else:               _score_dot = "⚪"
-
-            _card_top_meta = f'{status_icon} {status}{_dec_text}' if status or dec_label else ""
-            _card_lines = [role or company]
-            if _card_top_meta:
-                _card_lines.append(_card_top_meta)
-            if _meta_text:
-                _card_lines.append(_meta_text)
-            if _preview_short:
-                _card_lines.append(_preview_short)
-
-            st.markdown('<span class="pipeline-card-row-marker"></span>', unsafe_allow_html=True)
-            _ovc1, _ovc2 = st.columns([6, 1.5])
-            with _ovc1:
-                st.markdown('<span class="pipeline-card-marker"></span>', unsafe_allow_html=True)
-                if st.button("\n".join(_card_lines), key=f"card_{i}", use_container_width=True,
-                             type="primary" if _is_sel else "secondary"):
-                    if _is_sel:
-                        st.session_state.pop("pipeline_selected_idx", None)
-                    else:
-                        st.session_state["pipeline_selected_idx"] = i
-                    st.rerun()
-            with _ovc2:
-                st.markdown(
-                    f'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-top:2px">'
-                    f'{score_pill_html(score_n)}'
-                    f'<div style="font-size:12px;color:#94a3b8;font-weight:600">{dec_label}</div>'
-                    f'</div>',
-                    unsafe_allow_html=True
-                )
+            for orig_idx, entry in pipeline_filtered:
+                i = orig_idx
+                _parts = build_entry_scan_parts(entry)
+                _is_sel = (st.session_state.get("pipeline_selected_idx") == i)
+                with st.container(border=True):
+                    _card_top = st.container()
+                    with _card_top:
+                        st.markdown('<span class="overview-card-open-marker"></span>', unsafe_allow_html=True)
+                        if st.button("Open details", key=f"card_{i}", use_container_width=True,
+                                     type="secondary"):
+                            if _is_sel:
+                                st.session_state.pop("pipeline_selected_idx", None)
+                            else:
+                                st.session_state["pipeline_selected_idx"] = i
+                            st.rerun()
+                        render_scan_card_row(_parts)
+                    _oc1, _oc2 = st.columns([5, 1])
+                    if _parts["url"]:
+                        _oc1.markdown(f"[→ Apply on Company / Job Site]({_parts['url']})")
+                    _is_saved = entry.get("bookmarked", False)
+                    if _oc2.button("⭐" if _is_saved else "☆", key=f"overview_star_{i}",
+                                   help=L["unbookmark"] if _is_saved else L["bookmark"],
+                                   use_container_width=True,
+                                   type="primary" if _is_saved else "secondary",
+                                   disabled=demo_mode):
+                        _d = load_data()
+                        _d["pipeline"][i]["bookmarked"] = not _is_saved
+                        save_data(_d)
+                        st.rerun()
 
         # ── Detail panel (PC split view) ─────────────────────────
         if _detail_col is not None:
@@ -2722,24 +3005,16 @@ with tab_overview:
                         else:
                             _sbg, _sfg = "#dc2626", "#fee2e2"
 
-                    # ── Top row: title | score | ✕ ──
-                    _dph_t, _dph_s, _dph_x = st.columns([7, 2, 1])
+                    # ── Top row: title | ✕ ──
+                    _dph_t, _dph_x = st.columns([8.8, 0.8])
                     with _dph_t:
+                        st.markdown('<span class="dp-title-close-row-marker"></span>', unsafe_allow_html=True)
                         st.markdown(
                             f'<div style="font-size:18px;font-weight:700;color:#111;line-height:1.3;'
-                            f'word-break:break-word;white-space:normal;margin-bottom:2px">'
+                            f'word-break:break-word;white-space:normal;margin-bottom:0">'
                             f'{_sel_e.get("role","") or _sel_e.get("company","")}</div>',
                             unsafe_allow_html=True
                         )
-                    if _score100_dp is not None:
-                        with _dph_s:
-                            st.markdown(
-                                f'<div style="font-size:14px;font-weight:800;color:{_sbg};'
-                                f'background:{_sfg};border:2px solid {_sbg};border-radius:8px;'
-                                f'padding:3px 8px;text-align:center;letter-spacing:0.5px;'
-                                f'margin-top:4px">{_score100_dp}pts</div>',
-                                unsafe_allow_html=True
-                            )
                     with _dph_x:
                         if st.button("✕", key="close_detail", type="secondary"):
                             st.session_state.pop("pipeline_selected_idx", None)
@@ -2750,6 +3025,15 @@ with tab_overview:
                         f'{_sel_e.get("company","")}</div>',
                         unsafe_allow_html=True
                     )
+                    if _score100_dp is not None:
+                        _ds_sp, _ds_score = st.columns([1, 1.2])
+                        with _ds_sp:
+                            st.markdown('<span class="detail-score-row-marker"></span>', unsafe_allow_html=True)
+                        with _ds_score:
+                            st.markdown(
+                                score_square_html(_score100_dp, size=58, font_size=22),
+                                unsafe_allow_html=True
+                            )
                     if _sel_url:
                         st.markdown(f"[→ Apply on Company / Job Site]({_sel_url})")
 
@@ -2954,54 +3238,28 @@ with tab_overview:
                 st.rerun()
 
 # ════════════════════════════════════════
+# TAB: LIST
+# ════════════════════════════════════════
+with tab_list:
+    _list_pipeline = list(enumerate(data.get("pipeline", [])))
+    _list_pipeline = sorted(_list_pipeline, key=lambda x: entry_score_100(x[1]), reverse=True)
+    render_pipeline_dense_list(
+        _list_pipeline,
+        empty_label=L["no_pipeline"],
+        count_label=f"{len(_list_pipeline)} {L['tab_list']}"
+    )
+
+# ════════════════════════════════════════
 # TAB: SAVED
 # ════════════════════════════════════════
 with tab_saved:
     _saved_pipeline = [(i, e) for i, e in enumerate(data.get("pipeline", [])) if e.get("bookmarked")]
-    if not _saved_pipeline:
-        st.info(L["no_saved"])
-    else:
-        st.caption(f"{len(_saved_pipeline)} {L['tab_saved'].replace('🔖','').strip()}")
-        for _si, _se in _saved_pipeline:
-            _s_score_n = round(get_total(_se) / 8 * 100) if get_total(_se) is not None else -1
-            _s_decision = _se.get("eval_decision","")
-            _s_status   = _se.get("status","Not Applied")
-            _s_company  = _se.get("company","—")
-            _s_role     = _se.get("role","—")
-            _s_url      = _se.get("url","")
-            _s_reason   = _se.get("eval_reason","").strip()
-            _s_loc      = " / ".join(p for p in [_se.get("country",""), _se.get("city","")] if p)
-            _s_salary   = _se.get("salary","")
-            _s_preview  = (_s_reason[:85] + "…" if len(_s_reason) > 85 else _s_reason) if _s_reason else \
-                          "  ·  ".join(p for p in [_s_loc, _s_salary] if p)
-            if _s_score_n >= 75:   _s_sc = "#22c55e"; _s_sb = "#dcfce7"
-            elif _s_score_n >= 50: _s_sc = "#d97706"; _s_sb = "#fef3c7"
-            elif _s_score_n >= 0:  _s_sc = "#ef4444"; _s_sb = "#fee2e2"
-            else:                  _s_sc = "#94a3b8"; _s_sb = "#f1f5f9"
-            _s_score_str = str(_s_score_n) if _s_score_n >= 0 else "—"
-            _s_left = f'<div style="background:{_s_sb};color:{_s_sc};font-size:18px;font-weight:800;min-width:46px;height:46px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid {_s_sc}">{_s_score_str}</div>'
-            _s_meta = "  ·  ".join(p for p in [_s_loc, _s_salary, _se.get("source","")] if p)
-            _s_meta_line = f'<div style="font-size:12px;color:#9ca3af;margin-top:2px">{_s_meta}</div>' if _s_meta else ""
-            _s_prev_line = f'<div style="font-size:13px;color:#6b7280;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-top:3px">{_s_preview}</div>' if _s_preview else ""
-            st.markdown(
-                f'<div style="display:flex;align-items:flex-start;gap:12px;padding:6px 0">'
-                f'{_s_left}<div style="flex:1;min-width:0">'
-                f'<div style="font-size:16px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{_s_role or _s_company}</div>'
-                f'<div style="font-size:13px;color:#595959;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">{_s_company}</div>'
-                f'{_s_meta_line}{_s_prev_line}</div>'
-                f'<div style="text-align:right;flex-shrink:0;font-size:13px;color:#9ca3af">{STATUS_BADGE.get(_s_status,"⚪")}<br>'
-                f'<span style="font-size:11px">{_s_decision or "—"}</span></div></div>',
-                unsafe_allow_html=True
-            )
-            _sc1, _sc2 = st.columns([5, 1])
-            if _s_url: _sc1.markdown(f"[→ Apply on Company / Job Site]({_s_url})")
-            if _sc2.button("⭐", key=f"unsave_{_si}", help=L["unbookmark"],
-                           use_container_width=True, type="primary"):
-                d = load_data()
-                d["pipeline"][_si]["bookmarked"] = False
-                save_data(d)
-                st.rerun()
-            st.markdown("---")
+    render_pipeline_scan_list(
+        _saved_pipeline,
+        empty_label=L["no_saved"],
+        count_label=f"{len(_saved_pipeline)} {L['tab_saved'].replace('🔖','').strip()}" if _saved_pipeline else None,
+        key_prefix="saved"
+    )
 
 
 # ════════════════════════════════════════
@@ -3451,10 +3709,9 @@ with tab_eval:
         st.session_state[f"eval_role_{_fgen}"] = st.session_state.pop(f"_staged_role_{_fgen}")
 
     # ── URL fetch row ──────────────────────────────────────────────
-    fu1, fu2 = st.columns([5, 1])
-    eval_url = fu1.text_input("🔗 LinkedIn URL (optional)", placeholder="https://www.linkedin.com/jobs/view/...",
-                               key=f"eval_url_{_fgen}", label_visibility="visible")
-    _fetch_btn = fu2.button("Fetch", key=f"fetch_btn_{_fgen}", use_container_width=True)
+    eval_url = st.text_input("🔗 LinkedIn URL (optional)", placeholder="https://www.linkedin.com/jobs/view/...",
+                              key=f"eval_url_{_fgen}", label_visibility="visible")
+    _fetch_btn = st.button("Fetch", key=f"fetch_btn_{_fgen}", use_container_width=True, type="primary")
     if _fetch_btn:
         _raw_url = eval_url.strip()
         if not _raw_url:
@@ -3476,16 +3733,14 @@ with tab_eval:
                 st.success(L['fetch_done'] + f": {_fetched.get('company','')} / {_fetched.get('title','')}")
                 st.rerun()
 
-    e1, e2 = st.columns([2, 3])
-    eval_company = e1.text_input(L["company_hint"], key=f"eval_company_{_fgen}")
-    eval_role    = e2.text_input(L["role_hint"], key=f"eval_role_{_fgen}")
-    e4, e5, e6, e7, e8 = st.columns([2, 2, 2, 2, 2])
+    eval_company = st.text_input(L["company_hint"], key=f"eval_company_{_fgen}")
+    eval_role    = st.text_input(L["role_hint"], key=f"eval_role_{_fgen}")
     _src_opts = get_source_options()
-    eval_source_sel = e4.selectbox(L["source_hint"] + " (optional)", _src_opts, key=f"eval_source_{_fgen}")
-    eval_country = e5.text_input("Country (optional)", key=f"eval_country_{_fgen}", placeholder="e.g. Singapore")
-    eval_city    = e6.text_input("City (optional)", key=f"eval_city_{_fgen}", placeholder="e.g. CBD")
-    eval_job_id  = e7.text_input(L["job_id_hint"], key=f"eval_job_id_{_fgen}")
-    eval_salary  = e8.text_input(L["salary_hint"], key=f"eval_salary_{_fgen}", placeholder="e.g. SGD 8,000–10,000")
+    eval_source_sel = st.selectbox(L["source_hint"] + " (optional)", _src_opts, key=f"eval_source_{_fgen}")
+    eval_country = st.text_input("Country (optional)", key=f"eval_country_{_fgen}", placeholder="e.g. Singapore")
+    eval_city    = st.text_input("City (optional)", key=f"eval_city_{_fgen}", placeholder="e.g. CBD")
+    eval_job_id  = st.text_input(L["job_id_hint"], key=f"eval_job_id_{_fgen}")
+    eval_salary  = st.text_input(L["salary_hint"], key=f"eval_salary_{_fgen}", placeholder="e.g. SGD 8,000–10,000")
     if eval_source_sel == "Other":
         eval_source_custom = st.text_input("媒体名を入力（追加されます）", key=f"eval_source_custom_{_fgen}")
         eval_source = eval_source_custom.strip() if eval_source_custom.strip() else "Other"
@@ -3523,9 +3778,10 @@ with tab_eval:
                 st.success(L["pdf_loaded"](_pdf_safe + ".pdf"))
 
     eb1, eb2 = st.columns([3, 1])
+    eb1.markdown('<span class="eval-action-row-marker"></span>', unsafe_allow_html=True)
     eval_btn = eb1.button(L["evaluate_btn"], type="primary",
-                          disabled=demo_mode or not (jd_text and api_key))
-    if eb2.button("🗑 Clear", key="eval_clear"):
+                          disabled=demo_mode or not (jd_text and api_key), use_container_width=True)
+    if eb2.button("🗑 Clear", key="eval_clear", use_container_width=True):
         st.session_state["eval_form_gen"] = _fgen + 1
         st.rerun()
 
