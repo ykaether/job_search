@@ -1,21 +1,23 @@
-import streamlit as st
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import os
 
 PORTFOLIO_URL = "https://ykaether.github.io/ai-portfolio/"
 
-st.set_page_config(
-    page_title="Redirecting...",
-    page_icon="↗",
-    layout="centered"
-)
+class RedirectHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(302)
+        self.send_header("Location", PORTFOLIO_URL)
+        self.end_headers()
 
-st.markdown(
-    f"""
-    <meta http-equiv="refresh" content="0; url={PORTFOLIO_URL}">
-    <script>
-      window.location.replace("{PORTFOLIO_URL}");
-    </script>
+    def do_HEAD(self):
+        self.send_response(302)
+        self.send_header("Location", PORTFOLIO_URL)
+        self.end_headers()
 
-    Redirecting to portfolio...
-    """,
-    unsafe_allow_html=True
-)
+    def log_message(self, format, *args):
+        return
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", "10000"))
+    server = HTTPServer(("0.0.0.0", port), RedirectHandler)
+    server.serve_forever()
